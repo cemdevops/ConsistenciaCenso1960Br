@@ -1,0 +1,1268 @@
+//XXXMETA JOB (XXXXXXXX,20,5),'XXXXXXXXXXXX',TIME=2,
+//  NOTIFY=XXX,MSGCLASS=T
+//* Se ocorrer o erro ERROR:INSUFFICIENT SPACE IN FILE WORK.ARQV.DATA
+//* favor aumentar o parâmetro WORK abaixo
+//   EXEC SAS802,WORK='90000,10000'
+//ENTV DD DSN=DBAD.FIXYJ60.ISBBRS2,DISP=SHR
+//SYSIN DD *
+
+ /*CD - 1960 - Sub-Amostra (1%)*/
+
+ /* OBS: Para executar este programa em outro ambiente (ex: micro-computador), */
+ /* salvando os formatos criados pela PROC FORMAT, substitua no cartão         */
+ /* PROC, a biblioteca WORK por LIBRARY, e preceda o cartão PROC com o         */
+ /* comando LIBNAME LIBRARY 'nomeDiretorioLocal'.                              */
+PROC FORMAT LIB=WORK;
+  Value V110F
+    .='Não aplicável'
+    4='Durável'
+    5='Rústico'
+    6='Improvisado'
+    7='ignorado'
+     ;
+  Value V350F
+    4='Branca'
+    5='Preta'
+    6='Amarela'
+    7='Parda'
+    8='Indígena'
+    9='Ignorada'
+     ;
+  Value V430F
+    .='Não aplicado'
+    0='Está no primeiro ano elementar'
+    1='Nunca frequentou escola'
+    2='Primario/Elementar'
+    3='Ginasial/Médio 1. ciclo'
+    4='Colegial/Médio 2. ciclo'
+    5='Superior'
+    6='Ignorado'
+     ;
+  Value V10F
+    1='DOMICILIO'
+    2='CHEFE'
+    3='PESSOA'
+    4='BOLETIM INDIVIDU'
+    5='CONJUGUE'
+     ;
+  Value V20F
+    0='Rondonia'
+    1='Acre'
+    2='Amazonas'
+    3='RORAIMA'
+    4='Para'
+    6='Amapa'
+    10='Maranhão'
+    12='Piaui'
+    14='Ceara'
+    17='Rio Grande do Norte'
+    19='Paraiba'
+    21='Pernambuco'
+    24='Fernando de Noronha'
+    25='Alagoas'
+    30='Sergipe'
+    31='Bahia'
+    40='Minas Gerais'
+    50='Serra Aimores'
+    51='Espirito Santo'
+    52='Rio de Janeiro'
+    54='Guanabara'
+    60='São Paulo'
+    71='Parana'
+    74='Santa Catarina'
+    81='Rio Grande do Sul'
+    91='Mato Grosso'
+    94='Goias'
+    97='Distrito Federal'
+     ;
+  Value V160F
+    .='Não Aplicável'
+    0='Carvão'
+    1='Elétrico'
+    2='Gas'
+    3='Óleo/Querozene'
+    4='Não Tem'
+    5='Ignorado'
+    9='Lenha'
+     ;
+  Value V200F
+    .='Não aplicável'
+    1='Tem'
+    2='Não Tem'
+    3='Ignorado'
+     ;
+  Value V540F
+    .='Não Aplicável'
+    111='Cultura de Agave'
+    112='Cultura de Algodão'
+    113='Cultura de Arroz'
+    114='Cultura de Banana'
+    115='Cultura de Cacau'
+    116='Cultura de Café'
+    117='Cultura de Cana'
+    118='Cultura de Fumo'
+    119='Cultura de Trigo'
+    120='Outras Culturas'
+    121='Fruticultura(Exclusive Banana)'
+    122='Horticultura e Fruticultura'
+    123='Silvicultura'
+    129='Atividades Agricolas'
+    151='Pecuaria'
+    152='Avicultura e Cunticultura'
+    153='Apicultura e Sericultura'
+    191='Agropecuaria'
+    211='Extração de Borracha'
+    212='Extração de Erva-Mate'
+    213='Extração de Plantas Fibrosas'
+    214='Extração de Frutos/Sementes Oleaginosas'
+    215='Extração de Madeiras'
+    216='Produção de Carvão Vegetal'
+    219='Atividades Não Compreendidas'
+    251='Extração e Beneficiamento de Minerais'
+    252='Extração e Aparelhamento de Pedras'
+    253='Extração de Petroleo e Gas Natural'
+    254='Extração de Carvão de Pedra'
+    255='Exploração de Salinas e Fontes Hidromin.'
+    256='Faiscação e Garimpagem'
+    259='Atividades Não Compreendidas.'
+    291='Caça'
+    292='Pesca e Piscicultura'
+    311='Industrias Metalurgicas'
+    312='Industrias Mecanicas'
+    313='Industrias de Material Eletrico'
+    314='Industrias de Material de Transportes'
+    315='Industrias de Minerais não Metalicos'
+    316='Industrias de Borracha'
+    317='Industrias de Fumo'
+    318='Industrias de Papel e Papelão'
+    321='Industrias de Mobiliario'
+    322='Industrias de Madeira'
+    323='Industrias de Couro,Peles e Produtos'
+    324='Industrias Farmaceuticas'
+    325='Industrias de Plasticos'
+    326='Industrias Quimicas'
+    327='Industrias Produtos Derivados/Petroleo'
+    328='Industrias Texteis'
+    331='Industrias Domiciliarias Texteis'
+    332='Industrias Domiciliarias Artigos/Palha'
+    333='Industrias do Vestuario'
+    334='Industrias de Calçados'
+    335='Industrias Prod.Alimentares e Estimul.'
+    336='Industrias de Bebidas e Alcoois'
+    337='Industrias Editoriais e Graficas'
+    339='Atividades Não Compreendidas...'
+    351='Industriais de Construção Civil'
+    391='Produção de Energia Eletrica'
+    392='Abastecimento DÀ'gua e Serviços Esgoto'
+    411='Comércio de Animais Vivos'
+    412='Comércio de Generos Alimenticios'
+    413='Comércio de Tecidos e Prod.Afins'
+    414='Comércio de Moveis,Tapeçarias'
+    415='Comércio de Papel'
+    416='Comércio de Ferragens'
+    417='Comércio de Maquinas,Aparelhos'
+    418='Comércio de Produtos Farmaceuticos'
+    421='Comércio de Combustiveis e Lubrificantes'
+    422='Comércio Ambulante'
+    423='Feiras e Mercado'
+    424='Atividades Auxiliares do Comércio'
+    429='Atividades Não Compreendidas....'
+    451='Comércio de Imoveis'
+    452='Comércio de Titulos e Moedas'
+    453='Bancos e Casas Bancarias'
+    454='Caixas Economicas e Cooperativas'
+    455='Seguros e Capitalização'
+    459='Atividades Não Compreendidas.....'
+    511='Serviços de Alojamento/Alimentação'
+    512='Serviços de Higiene Pessoal'
+    513='Serviços de Confecção'
+    514='Serviços de Conservação'
+    515='Serviços de Conservação e Reparação'
+    516='Serviços de Diversões'
+    517='Serviços Domesticos'
+    518='Serviços de Administração/Conservação'
+    519='Atividades Não Comprendidas.....'
+    611='Transportes a Tração e Condução'
+    612='Transportes Rodoviarios'
+    613='Transportes Urbanos de Ferro'
+    614='Transportes Ferroviarios'
+    615='Transportes Maritimos,Fluviais'
+    616='Serviços Portuarios'
+    617='Transportes Aereos'
+    618='Serviços Postais'
+    621='Telefones'
+    622='Armazenagem'
+    629='Atividades Não Compreendidas......'
+    711='Ensino Publico'
+    712='Ensino Particular'
+    713='Assistencia Medico-Hospitalar Publico'
+    714='Assistencia Medico-Hospitalar Particular'
+    715='Saneamento,Abastecimento'
+    716='Previdencia Social'
+    717='Assistencia e Beneficencia'
+    718='Culto e Atividade Auxiliar'
+    721='Instituições Culturas'
+    722='Sindicatos e Associações de Classe'
+    729='Atividades Não Compreendidas........'
+    751='Advocacia e Atividades Auxiliares'
+    752='Engenharia,Arquitetura'
+    753='Odontologia e Atividades Auxiliares'
+    754='Agronomia,Veterinaria'
+    755='Medicina e Atividades Auxiliares'
+    756='Ciencias,Letras'
+    757='Contabilidade e Atividades Aux.'
+    759='Atividades Não Compreendidas.......'
+    811='Poder Legislativo'
+    812='Justiça e Atividades Auxiliares'
+    813='Serviço Administrativo Federal'
+    814='Serviço Administrativo Estadual'
+    815='Serviço Administrativo Municipal'
+    816='Serviço Administrativo Autarquico'
+    819='Atividades Não Compreendidas............'
+    851='Exercito'
+    852='Marinha de Guerra'
+    853='Aviação Militar'
+    854='Policia Militar'
+    855='Policia Civil'
+    856='Corpo de Bombeiro'
+    859='Outras Organizações'
+    911='Representações Estrangeiras'
+    912='Outras Atividades'
+    919='Atividades Mal Definidas/Não Declaradas'
+     ;
+  Value V140F
+    .='Não aplicável'
+    0='Rede geral com canalização externa'
+    1='Poço/nascente com canalização'
+    2='Poço/nascente sem canalização'
+    3='Outra forma'
+    4='Ignorado'
+    9='Rede geral com canalização Interna'
+     ;
+  Value V410F
+    .='Não Aplicável'
+    0='Le E Frequenta Escola'
+    1='Le E Não Vai a Escola'
+    2='Não Le E Vai a Escola'
+    3='Não Le E Não Vai a escola'
+    4='Ignorada'
+     ;
+  Value V190F
+    .='Não aplicável'
+    0='Não Tem'
+    1='Ignorado'
+    9='Tem'
+     ;
+  Value V510F
+    .='Não Aplicável'
+    0='Detento'
+    1='Sem Ocupação'
+    2='Ignorado'
+    3='Prejudicado Economicamente'
+    4='Afazeres Domesticos'
+    5='Estudante'
+    6='Aposentado'
+    7='Vive De Rendas'
+    8='Doença Temporaria'
+    9='Invalidez Permanente'
+     ;
+  Value V170F
+    .='Não Aplicável'
+    5='Tem'
+    6='Não Tem'
+    7='Ignorado'
+     ;
+  Value V460F
+    .='Não Aplicado'
+    0='Solteiro(a)'
+    1='Separado(a)'
+    2='Desquitado(a)'
+    3='Divorciado(a)'
+    4='Viuvo(a)'
+    5='Ignorado'
+    6='Casado(a) no civil'
+    7='Só casamento'
+    8='Só casamento.'
+    9='Vivendo maritalmente'
+     ;
+  Value V320F
+    0='Neto'
+    1='Pais e Sogros'
+    2='Outros Parentes'
+    3='Agregado'
+    4='Hospede ou Empregado'
+    5='Ignorado'
+    6='Boletim Individual'
+    7='Chefe'
+    8='Conjuge'
+    9='Filho ou Enteado'
+     ;
+  Value V150F
+    .='Não Aplicável'
+    4='Rede de esgoto'
+    5='Fossa Septica'
+    6='Fossa Rudimentar'
+    7='Outro Escoadouro'
+    8='Não Tem'
+    9='Ignorado'
+     ;
+  Value V420F
+    .='Não aplicável'
+    0='Esta no primeiro ano elementar'
+    1='Nunca frequentou escola'
+    2='Ignorado'
+    4='Primeira série'
+    5='Segunda série'
+    6='Terceira série'
+    7='Quarta série'
+    8='Quinta série'
+    9='Sexta série'
+     ;
+  Value V130F
+    .='Não Aplicável'
+    0='Até 500'
+    1='De 500 A 1000'
+    2='De 1001 A 2000'
+    3='De 2001 A 4000'
+    4='De 4001 A 6000'
+    5='De 6001 A 10000'
+    6='De 10001 A 20000'
+    7='De 20001 E MAIS'
+    8='Não Paga Aluguel'
+    9='Ignorado'
+     ;
+  Value V360F
+    1='ACRE'
+    2='ALAGOAS'
+    3='AMAPA'
+    4='AMAZONAS'
+    5='BAHIA'
+    6='BRASILIA (D.F.)'
+    7='CEARA'
+    8='ESPIRITO SANTO'
+    9='ESTADO DO RIO'
+    10='FERNANDO NORONHA'
+    11='GOIAS'
+    12='GUANABARA'
+    13='GUAPORE/RONDONIA'
+    14='MARANHÃO'
+    15='MATO GROSSO'
+    16='MINAS GERAIS'
+    17='PARA'
+    18='PARAIBA'
+    19='PARANA'
+    20='PERNAMBUCO'
+    21='PIAUI'
+    22='RIO BRANCO'
+    23='RIO GRANDE NORTE'
+    24='RIO GRANDE SUL'
+    25='SANTA CATARINA'
+    26='SÃO PAULO'
+    27='SERGIPE'
+    28='SERRA DOS AIMORE'
+    29='BRASIL SEM ESPEC'
+    30='AÇORES'
+    31='AFRICA DO SUL'
+    32='ALEMANHA'
+    33='ARGELIA'
+    34='ARGENTINA'
+    35='U.R.S.S.'
+    36='AUSTRALIA'
+    37='AUSTRIA'
+    38='BELGICA'
+    39='BOLIVIA'
+    40='BULGARIA'
+    41='CANADA'
+    42='CHILE'
+    43='CHINA'
+    44='SIRIA'
+    45='COLOMBIA'
+    46='COREIA'
+    47='COSTA RICA'
+    48='CUBA'
+    49='DINAMARCA'
+    50='EGITO'
+    51='EQUADOR'
+    52='REINO UNIDO'
+    53='IUGOSLAVIA'
+    54='ESPANHA'
+    55='ESTADOS UNIDOS'
+    56='FILIPINAS'
+    57='FINLANDIA'
+    58='FRANÇA'
+    59='GRECIA'
+    60='GUATEMALA'
+    61='GUIANA INGLESA'
+    62='GUIANA FRANCESA'
+    63='GUIANA HOLANDESA'
+    64='HAITI'
+    65='HOLANDA'
+    66='HONDURAS'
+    67='HONDURAS BRITANI'
+    68='HUNGRIA'
+    69='INDIA'
+    70='IRÃ'
+    71='IRAQUE'
+    72='IRLANDA (EIRE)'
+    73='ISRAEL'
+    74='ITALIA'
+    75='JAMAICA'
+    76='JAPÃO'
+    77='LIBANO'
+    78='MEXICO'
+    79='NICARAGUA'
+    80='NIGERIA'
+    81='NORUEGA'
+    82='NOVA ZELANDIA'
+    83='PANAMA'
+    84='PAQUISTÃO'
+    85='PARAGUAI'
+    86='PERSIA'
+    87='PERU'
+    88='POLONIA'
+    89='PORTUGAL'
+    90='REPUB DOMINICANA'
+    91='RUMANIA'
+    92='SALVADOR'
+    93='SUECIA'
+    94='SUIÇA'
+    95='TCHECO-ESLOVAQUI'
+    96='TURQUIA'
+    97='URUGUAI'
+    98='VENEZUELA'
+    99='IGNORADA'
+     ;
+  Value V400F
+    0='Natural/não mora'
+    1='Acre'
+    2='Alagoas'
+    3='Amapá'
+    4='Amazonas'
+    5='Bahia'
+    6='Brasília (D.F.)'
+    7='Ceará'
+    8='Espírito Santo'
+    9='Estado do Rio'
+    10='Fernando de Noronha'
+    11='Goiás'
+    12='Guanabara'
+    13='Guaporé/Rondônia'
+    14='Maranhão'
+    15='Mato Grosso'
+    16='Minas Gerais'
+    17='Pará'
+    18='Paraíba'
+    19='Paraná'
+    20='Pernambuco'
+    21='Piauí'
+    22='Rio Branco'
+    23='Rio Grande do Norte'
+    24='Rio Grande do Sul'
+    25='Santa Catarina'
+    26='São Paulo'
+    27='Sergipe'
+    28='Serra dos Aimorés'
+    29='Brasil sem especificação'
+    30='Açores'
+    31='África do Sul'
+    32='Alemanha'
+    33='Argelia'
+    34='Argentina'
+    35='U.R.S.S.'
+    36='Austrália'
+    37='Áustria'
+    38='Bélgica'
+    39='Bolívia'
+    40='Bulgária'
+    41='Canadá'
+    42='Chile'
+    43='China'
+    44='Síria'
+    45='Colômbia'
+    46='Coréia'
+    47='Costa Rica'
+    48='Cuba'
+    49='Dinamarca'
+    50='Egito'
+    51='Equador'
+    52='Reino Unido'
+    53='Iugoslávia'
+    54='Espanha'
+    55='Estados Unidos'
+    56='Filipinas'
+    57='Finlândia'
+    58='França'
+    59='Grécia'
+    60='Guatemala'
+    61='Guiana Inglesa'
+    62='Guiana Francesa'
+    63='Guiana Holandesa'
+    64='Haiti'
+    65='Holanda'
+    66='Honduras'
+    67='Honduras Britanicas'
+    68='Hungria'
+    69='Índia'
+    70='Irã'
+    71='Iraque'
+    72='Irlanda (Eire)'
+    73='Israel'
+    74='Itália'
+    75='Jamaica'
+    76='Japão'
+    77='Líbano'
+    78='México'
+    79='Nicaragua'
+    80='Nigéria'
+    81='Noruega'
+    82='Nova Zelândia'
+    83='Panamá'
+    84='Paquistão'
+    85='Paraguai'
+    86='Pérsia'
+    87='Peru'
+    88='Polônia'
+    89='Portugal'
+    90='República Dominicana'
+    91='Rumania'
+    92='Salvador'
+    93='Suécia'
+    94='Suiça'
+    95='Tcheco-Eslováquia'
+    96='Turquia'
+    97='Uruguai'
+    98='Venezuela'
+    99='Exterior sem/especificação'
+     ;
+  Value V530F
+    .='Não Aplicável'
+    2='Ocupação Declarada'
+    3='Outra Ocupação'
+    4='Desempregado'
+    5='Ignorado'
+     ;
+  Value V480F
+    .='Não aplicado'
+    0='Sem filho'
+    1='Um filho'
+    2='Dois filhos'
+    3='Tres filhos'
+    4='Quatro filhos'
+    5='Cinco filhos'
+    6='Seis filhos'
+    7='Sete filhos'
+    8='Oito filhos'
+    9='Nove filhos'
+    10='Dez filhos'
+    11='Onze filhos'
+    12='Doze filhos'
+    13='Treze filhos'
+    14='Quatorze filhos'
+    15='Quinze filhos'
+    16='Dezesseis filhos'
+    17='Dezessete filhos'
+    18='Dezoito filhos'
+    19='Dezenove filhos'
+    20='Vinte filhos'
+    21='Vinte Um filhos'
+    22='Vinte Dois filhos'
+    23='Vinte Tres filhos'
+    24='Vinte Quatro filhos'
+    25='Vinte Cinco filhos'
+    26='Vinte Seis filhos'
+    27='Vinte Sete filhos'
+    28='Vinte Oito filhos'
+    29='Vinte Nove filhos'
+    30='Trinta filhos'
+    99='Ignorado'
+     ;
+  Value V120F
+    .='Não aplicável'
+    0='Ignorado'
+    7='Próprio'
+    8='Alugado'
+    9='Outra condição'
+     ;
+  Value V380F
+    0='Rural'
+    1='Urbana'
+    2='Natural/Não Mora'
+    3='Tempo de Procedencia'
+     ;
+  Value V500F
+    .='Não Aplicável'
+    0='De 10 001 a 20 0'
+    1='DE 20 001 A 50 0'
+    2='De 50 001 e Mais'
+    3='Não Tem'
+    4='Ignorado'
+    5='Até 2 100'
+    6='De 2 101 a 3 300'
+    7='De 3 301 a 4 500'
+    8='De 4 501 a 6 000'
+    9='De 6 001 a 10 00'
+     ;
+  Value V70F
+    1='URBANO'
+    3='SUBURBANO'
+    5='RURAL'
+     ;
+  Value V300F
+    1='Urbano'
+    3='Suburbano'
+    5='Rural'
+     ;
+  Value V310F
+    1='HOMEM PRESENTE'
+    2='MULHER PRESENTE'
+    3='HOMEM AUSENTE'
+    4='MULHER AUSENTE'
+    5='HOMEM NÃO MORADOR'
+    6='MULHER NÃO MORADOR'
+     ;
+  Value V100F
+    1='Particular único'
+    2='Particular primeira família'
+    3='Coletivo'
+    4='Particular segunda família'
+    5='Particular terceira família'
+    9='Boletim individual'
+     ;
+  Value V370F
+    0='Brasileiro naturalizado'
+    1='Estrangeiro'
+    9='Brasileiro Nato'
+     ;
+  Value V450F
+    .='Não Aplicável'
+    0='Sem Curso Completo'
+    10='Primario'
+    11='Comercial'
+    13='Serviços Sanitaristas'
+    14='Militar Elementar'
+    15='AgriculTura e Pericultura'
+    16='Emendativo Elementar'
+    17='Industrial Elementar'
+    19='Outros Elementar'
+    20='Ginasial'
+    21='Comercial Primeiro Grau'
+    22='Normal/Ped Primeiro Grau'
+    24='Militar Primeiro Grau'
+    25='Agricultura e Pecuaria'
+    26='Emendativo Primeiro GRAU'
+    27='Industrial Primeiro Grau'
+    29='Outros Primeiro Grau'
+    33='Serviços Sanitarios'
+    34='Militar Médio'
+    36='Educação Fisica'
+    38='Eclesiastico'
+    39='Outros Nivél Médio'
+    40='Colegial/Cientifico'
+    41='Comercial Segundo Grau'
+    42='Normal/Ped Segundo Grau'
+    44='MILITAR segundo grau'
+    45='Agricultura e Pecuaria.'
+    47='Industrial Segundo Grau'
+    49='Outros Segundo Grau'
+    50='Geografia/Historia'
+    51='Historia Natural'
+    52='Letras'
+    53='Matematica/Fisica/Quimica/Desenho'
+    54='Outros Cursos'
+    57='Belas Artes'
+    60='Medicina'
+    61='Farmacia'
+    62='Odontologia'
+    63='Veterinaria'
+    64='Engenharia'
+    65='Arquitetura'
+    66='Quimica Industrial'
+    67='Direito'
+    68='Agronomia'
+    70='Ciencias Economicas'
+    71='Ciencias Estatisticas'
+    72='Artes Domesticas'
+    73='Serviços Sanitaristas.'
+    74='Militar Superior'
+    76='Educação Fisica.'
+    78='Eclesiastico (Nivel Superior)'
+    79='Outros (Nivel Superior)'
+    99='Ignorado'
+     ;
+  Value V340F
+    0='Ortodoxa'
+    1='Maometana'
+    2='Outra Religião'
+    3='Sem Religião'
+    4='Ignorado'
+    5='Catolica Romana'
+    6='Protestante'
+    7='Espirita'
+    8='Budista'
+    9='Israelita'
+     ;
+  Value V550F
+    .='Não aplicável'
+    0='Membro da família'
+    1='Ignorado'
+    5='Empregado público'
+    6='Empregado particular'
+    7='Conta própria / Autonomo'
+    8='Parceiro ou Meeiro'
+    9='Empregador'
+     ;
+  Value V390F
+    0='Ausencia de informação'
+    1='Ausencia de informação.'
+    2='Menos de 1 ano'
+    3='1 ano'
+    4='2 anos'
+    5='3 anos'
+    6='4 anos'
+    7='5 anos'
+    8='6 a 10 anos'
+    9='11 anos e mais'
+     ;
+  Value V520F
+    .='NAO APLICAVEL'
+    111='AGRICULTORES (FA'
+    112='PECUARISTAS'
+    113='AVICULTORES E'
+    114='INDUSTRIAIS'
+    115='COMERCIANTES'
+    116='HOTELEIROS E DON'
+    117='OUTROS PROPRIETA'
+    121='ADMINISTRADORES,'
+    122='DIRETORES E GE'
+    123='ADMINISTRADORES'
+    124='OUTROS ADMINIST'
+    181='COLETORES E EXAT'
+    182='CAIXAS E TESOURE'
+    183='COBRADORES'
+    184='CONTADORES E GUA'
+    185='DESPACHANTES (RE'
+    186='ALMOXARIFES E AR'
+    187='DATILOGRAFOS'
+    188='TAQUIGRAFOS'
+    189='OPERADORES DE AP'
+    191='AUXILIARES DE'
+    211='ENGENHEIROS'
+    212='ARQUITETOS'
+    213='AGRIMENSORES E T'
+    214='DESENHISTAS E CA'
+    215='QUIMICOS'
+    216='FARMACEUTICOS'
+    217='PRATICOS DE FARM'
+    218='LABORATORISTAS'
+    221='AGRONOMOS'
+    222='VETERINARIOS'
+    223='NATURALISTAS'
+    231='MEDICOS'
+    232='DENTISTAS'
+    241='ASSISTENTES SOCI'
+    242='PARTEIRAS'
+    243='ENFERMEIROS E MA'
+    244='PROTETICOS'
+    245='OPERADORES DE R'
+    251='MATEMATICOS E FI'
+    252='PROFESS PRIMARIO'
+    253='PROFESS SECUNDAR'
+    254='PROFESS SUPERIOR'
+    255='PROF SEM ESPECIF'
+    256='SOCIOLOGOS, ECO'
+    257='INSPETORES DE AL'
+    261='MAGISTRADOS'
+    262='PROCURADORES, PR'
+    263='ADVOGADOS E DEFE'
+    264='TABELIÃES E OFIC'
+    265='ESCRIVÃES E AUXI'
+    271='RELIGIOSOS'
+    281='ESCRITORES E JOR'
+    291='ESCULTORES E PIN'
+    292='TECNICOS DE PUBL'
+    293='DECORADORES E CE'
+    294='CINEGRAFISTAS'
+    295='FOTOGRAFOS'
+    311='TECNICOS AGRICOL'
+    312='TRATORISTAS'
+    313='ARADORES'
+    321='CHACAREIROS, HOR'
+    322='JARDINEIROS'
+    323='TRABALHADORES AG'
+    324='TRABALHADORES DE'
+    331='PESCADORES'
+    332='CAÇADORES'
+    341='MADEIREIROS E LE'
+    342='CARVOEIROS (FABR'
+    343='SERINGUEIROS'
+    344='ERVATEIROS'
+    345='APANHADORES, DES'
+    411='MINEIROS'
+    421='CANTEIROS E MARR'
+    431='OCUPAÇÕES RELATI'
+    441='GARIMPEIROS'
+    511='MODELADORES E FO'
+    512='FUNDIDORES DE ME'
+    513='LAMINADORES E TR'
+    514='AFIADORES E AMOL'
+    521='ESTAMPADORES MEC'
+    522='FREZADORES E FUR'
+    523='TORNEIROS MECANI'
+    524='MECANICOS DE MOT'
+    525='MECANICOS, SEM E'
+    526='GALVANIZADORES E'
+    527='SOLDADORES'
+    528='CALDEIREIROS'
+    529='FERREIROS E SERR'
+    531='LANTERNEIROS DE'
+    532='REBITADORES DE M'
+    533='FUNILEIROS DE ME'
+    534='FERRADORES'
+    541='CARDADORES E PEN'
+    542='MAÇAROQUEIROS, B'
+    543='FIANDEIROS'
+    544='RENDEIRAS'
+    545='URDIDORES E REME'
+    546='CORDOEIROS'
+    547='TECELÕES'
+    548='TAPECEIROS'
+    549='REDEIROS'
+    551='ALVEJADORES E TI'
+    552='ESTAMPADORES TEX'
+    553='ACABADORES DE PA'
+    554='CERZIDEIRAS'
+    561='CORREEIROS E SEL'
+    562='CURTIDORES'
+    571='ALFAIATES E COST'
+    572='BORDADEIRAS'
+    573='CHAPELEIROS (DE'
+    574='CHAPELEIROS, EXC'
+    575='SAPATEIROS'
+    576='BOLSEIROS E CINT'
+    581='MARCENEIROS'
+    582='CARPINTEIROS'
+    583='TANOEIROS'
+    584='SERRADORES'
+    585='ESTOFADORES E CA'
+    586='COLCHOEIROS'
+    587='LUSTRADORES DE'
+    591='ELETRICISTAS'
+    592='RADIOTECNICOS (C'
+    611='MESTRES DE OBRAS'
+    612='ARMADORES DE CON'
+    613='PEDREIROS'
+    614='SERVENTES DE PED'
+    615='PINTORES CAIADOR'
+    616='ESTUCADORES'
+    617='LADRILHEIROS E T'
+    618='ENCANADORES'
+    619='VIDRACEIROS (COL'
+    621='CALCETEIROS E AS'
+    622='CALAFATES'
+    623='OPERADORES DE M'
+    631='LINGUICEIROS E S'
+    632='CHARQUEADORES'
+    633='MAGAREFES'
+    634='MANTEIGUEIROS E'
+    635='DOCEIROS E CONFE'
+    636='MACARRONEIROS E'
+    637='PADEIROS'
+    638='FARINHEIROS E MO'
+    639='OCUPAÇÕES CONCE'
+    641='OCUPAÇÕES CONCER'
+    642='OCUPAÇÕES CONCE.'
+    643='OCUPAÇÕES CONCER.'
+    651='LINOTIPISTAS'
+    652='TIPOGRAFOS'
+    653='CLICHERISTAS E G'
+    654='IMPRESSORES'
+    655='REVISORES, NA IN'
+    656='ENCADERNADORES E'
+    657='OUTRAS OCUPAÇÕ'
+    661='VIDREIROS E AMPO'
+    662='CERAMISTAS E LOU'
+    663='PINTORES CERAMIC'
+    664='OLEIROS'
+    671='MESTRES, CONTRA'
+    672='OURIVES E RELOJO'
+    673='LAPIDADORES'
+    674='VULCANIZADORES E'
+    675='FOGUETEIROS'
+    676='OUTRAS OCUPAÇÕES'
+    681='CESTEIROS E ESTE'
+    682='VASSOUREIROS'
+    683='MARMORISTAS'
+    684='CHARUTEIROS E CI'
+    685='POLIDORES E ESME'
+    686='PINTORES A PISTO'
+    687='MALEIROS'
+    688='FOGUISTAS (EXCLU'
+    689='EMBALADORES E EX'
+    711='AÇOUGUEIROS'
+    712='VENDEDORES AMBUL'
+    713='BALCONISTAS E EN'
+    714='VENDEDORES DE JO'
+    721='PRACISTAS E VIAJ'
+    722='REPRESENTANTES C'
+    723='PROPAGANDISTAS'
+    731='CORRETORES E AGE'
+    732='COMPRADORES'
+    733='LEILOEIROS'
+    811='AVIADORES CIVIS'
+    812='AEROMOÇOS'
+    821='OFICIAIS DE MARI'
+    822='MESTRES DE EMBAR'
+    823='MAQUINISTAS DE E'
+    824='FOGUISTAS DE EMB'
+    825='MARINHEIROS CIVI'
+    826='TAIFEIROS'
+    827='BARQUEIROS E CAN'
+    831='PRATICOS DE PORT'
+    832='GUINDASTEIROS'
+    833='ESTIVADORES'
+    841='AGENTES DE ESTRA'
+    842='CONDUTORES E CHE'
+    843='MAQUINISTAS'
+    844='FOGUISTAS DE TRE'
+    845='GUARDA-FREIOS'
+    846='MANOBREIROS E SI'
+    851='MOTORISTAS'
+    852='TROCADORES'
+    853='MOTORNEIROS DE B'
+    854='CONDUTORES DE BO'
+    855='CARROCEIROS E TR'
+    861='INSPETORES E DES'
+    862='TRABALHADORES DE.'
+    863='TRABALHADORES'
+    871='AGENTES POSTAIS'
+    872='TELEGRAFISTAS E'
+    873='TELEFONISTAS'
+    874='CARTEIROS'
+    875='MANIPULADORES DO'
+    876='GUARDA-FIOS'
+    911='COZINHEIROS'
+    912='GARÇÕES'
+    913='AMAS E COPEIRAS'
+    921='PORTEIROS, FAXIN'
+    931='BARBEIROS E CABE'
+    932='MANICURAS E PEDI'
+    933='LAVADEIRAS E ENG'
+    934='ENGRAXATES'
+    941='MUSICOS'
+    942='ARTISTAS DE CINE'
+    943='LOCUTORES E AR'
+    944='OPERADORES DE RA'
+    945='OPERADORES CINEM'
+    951='ATLETAS PROFISSI'
+    961='LAVADORES DE CAR'
+    962='ENCERADORES'
+    971='OFICIAIS E PRAÇA'
+    972='OFICIAIS E PRAÇA.'
+    973='DELEGADOS E COMI'
+    974='INVESTIGADORES E'
+    975='GUARDAS CIVIS E'
+    976='CARCEREIROS E GU'
+    981='APONTADORES E CA'
+    982='APRENDIZES'
+    983='CONTINUOS, VIGIA'
+    984='GUARDAS SANITARI'
+    985='INSPETORES E FIS'
+    986='LIXEIROS'
+    987='LUBRIFICADORES'
+    988='OPERADORES DE M.'
+    989='TRABALHADORES BR'
+    998='OUTRAS OCUPAÇÕE'
+    999='SEM DECLARAÇÃO D'
+     ;
+  Value V180F
+    .='Não Aplicável'
+    7='Tem'
+    8='Não Tem'
+    9='Ignorado'
+     ;
+  Value V470F
+    .='NAO APLICAVEL'
+    0='NÃO TEM'
+    1='1901'
+    2='1902'
+    3='1903'
+    4='1904'
+    5='1905'
+    6='1906'
+    7='1907'
+    8='1908'
+    9='1909'
+    10='1910'
+    11='1911'
+    12='1912'
+    13='1913'
+    14='1914'
+    15='1915'
+    16='1916'
+    17='1917'
+    18='1918'
+    19='1919'
+    20='1920'
+    21='1921'
+    22='1922'
+    23='1923'
+    24='1924'
+    25='1925'
+    26='1926'
+    27='1927'
+    28='1928'
+    29='1929'
+    30='1930'
+    31='1931'
+    32='1932'
+    33='1933'
+    34='1934'
+    35='1935'
+    36='1936'
+    37='1937'
+    38='1938'
+    39='1939'
+    40='1940'
+    41='1941'
+    42='1942'
+    43='1943'
+    44='1944'
+    45='1945'
+    46='1946'
+    47='1947'
+    48='1948'
+    49='1949'
+    50='1950'
+    51='1951'
+    52='1952'
+    53='1953'
+    54='1954'
+    55='1955'
+    56='1956'
+    57='1957'
+    58='1958'
+    59='1959'
+    60='1960'
+    61='1900'
+    62='ANTES 1864'
+    63='IGNORADO'
+    64='1864'
+    65='1865'
+    66='1866'
+    67='1867'
+    68='1868'
+    69='1869'
+    70='1870'
+    71='1871'
+    72='1872'
+    73='1873'
+    74='1874'
+    75='1875'
+    76='1876'
+    77='1877'
+    78='1978'
+    79='1879'
+    80='1880'
+    81='1881'
+    82='1882'
+    83='1883'
+    84='1884'
+    85='1885'
+    86='1886'
+    87='1887'
+    88='1888'
+    89='1889'
+    90='1890'
+    91='1891'
+    92='1892'
+    93='1893'
+    94='1894'
+    95='1895'
+    96='1896'
+    97='1897'
+    98='1898'
+    99='1899'
+     ;
+ /* OBS.: Para executar em micro-computador, substituir os  */
+ /* caracteres Ã (A til maiusculo) por @ (arroba).          */
+DATA ARQV;
+  INFILE ENTV MISSOVER;
+    INPUT
+      Ã1      V10         PIB1.      /* Tipo - reg                            */
+                                     /* 0005 Categorias                       */
+      Ã2      V20         PIB1.      /* Estado                                */
+                                     /* 0028 Categorias                       */
+      Ã3      V30         IB2.       /* Município                             */
+      Ã5      V40         PIB1.      /* Distrito                              */
+      Ã6      V50         IB4.       /* Pasta                                 */
+      Ã10     V60         IB2.       /* Boletim                               */
+      Ã13     V70         PIB1.      /* Situação                              */
+                                     /* 0003 Categorias                       */
+      Ã13     V300        PIB1.      /* Situação                              */
+                                     /* 0003 Categorias                       */
+      Ã14     V310        PIB1.      /* Sexo                                  */
+                                     /* 0006 Categorias                       */
+      Ã14     V100        PIB1.      /* Meses do ano                          */
+                                     /* 0006 Categorias                       */
+      Ã15     V320        PIB1.      /* Relação com o chefe                   */
+                                     /* 0010 Categorias                       */
+      Ã15     V110        PIB1.      /* Tipo do domicílio                     */
+                                     /* 0005 Categorias                       */
+      Ã16     V120        PIB1.      /* Condição de ocupação                  */
+                                     /* 0005 Categorias                       */
+      Ã16     V330        PIB1.      /* Código idade                          */
+      Ã17     V335        PIB1.      /* Idade meses / Anos                    */
+      Ã17     V130        PIB1.      /* Aluguel mensal                        */
+                                     /* 0011 Categorias                       */
+      Ã18     V140        PIB1.      /* Abastecimento de água                 */
+                                     /* 0007 Categorias                       */
+      Ã18     V340        PIB1.      /* Religião                              */
+                                     /* 0010 Categorias                       */
+      Ã19     V150        PIB1.      /* Instalação sanitária                  */
+                                     /* 0007 Categorias                       */
+      Ã19     V350        PIB1.      /* Cor                                   */
+                                     /* 0006 Categorias                       */
+      Ã20     V360        PIB1.      /* Naturalidade                          */
+                                     /* 0099 Categorias                       */
+      Ã20     V160        PIB1.      /* Fogão                                 */
+                                     /* 0008 Categorias                       */
+      Ã21     V370        PIB1.      /* Nacionalidade                         */
+                                     /* 0003 Categorias                       */
+      Ã21     V170        PIB1.      /* Iluminação elétrica                   */
+                                     /* 0004 Categorias                       */
+      Ã22     V180        PIB1.      /* Rádio                                 */
+                                     /* 0004 Categorias                       */
+      Ã22     V380        PIB1.      /* Procedência                           */
+                                     /* 0004 Categorias                       */
+      Ã23     V190        PIB1.      /* Geladeira                             */
+                                     /* 0004 Categorias                       */
+      Ã23     V390        PIB1.      /* Tempo de migração                     */
+                                     /* 0010 Categorias                       */
+      Ã24     V400        PIB1.      /* Lugar de residência ant               */
+                                     /* 0100 Categorias                       */
+      Ã24     V200        PIB1.      /* Televisão                             */
+                                     /* 0004 Categorias                       */
+      Ã25     V210        PIB1.      /* Total de cômodos                      */
+      Ã25     V410        PIB1.      /* Alfabetização                         */
+                                     /* 0006 Categorias                       */
+      Ã26     V220        PIB1.      /* Peças servindo dormitório             */
+      Ã26     V420        PIB1.      /* Última série concluiu                 */
+                                     /* 0010 Categorias                       */
+      Ã27     V430        PIB1.      /* Grau do curso                         */
+                                     /* 0008 Categorias                       */
+      Ã28     V450        PIB1.      /* Curso completo                        */
+                                     /* 0054 Categorias                       */
+      Ã29     V460        PIB1.      /* Estado conjugal                       */
+                                     /* 0011 Categorias                       */
+      Ã30     V470        PIB1.      /* Ano do casamento                      */
+                                     /* 0101 Categorias                       */
+      Ã31     V480        PIB1.      /* Filhos tidos                          */
+                                     /* 0033 Categorias                       */
+      Ã32     V490        PIB1.      /* Filhos vivos                          */
+      Ã33     V500        PIB1.      /* Rendimentos                           */
+                                     /* 0011 Categorias                       */
+      Ã34     V510        PIB1.      /* Atividade não econo                   */
+                                     /* 0011 Categorias                       */
+      Ã35     V520        IB2.       /* Ocupação habitual                     */
+                                     /* 0249 Categorias                       */
+      Ã37     V530        PIB1.      /* Ocupação na última se                 */
+                                     /* 0005 Categorias                       */
+      Ã38     V540        IB2.       /* Ramo e classe de ati                  */
+                                     /* 0137 Categorias                       */
+      Ã40     V550        PIB1.      /* Posição na ocupação                   */
+                                     /* 0008 Categorias                       */
+;
+Attrib V10       Format= V10F.     Length= 3.        
+ Label='Tipo - reg';
+Attrib V20       Format= V20F.     Length= 3.        
+ Label='Estado';
+Attrib V30       Length= 3.        
+ Label='Município';
+Attrib V40       Length= 3.        
+ Label='Distrito';
+Attrib V50       Length= 7.        
+ Label='Pasta';
+Attrib V60       Length= 4.        
+ Label='Boletim';
+Attrib V70       Format= V70F.     Length= 3.        
+ Label='Situação';
+Attrib V300      Format= V300F.    Length= 3.        
+ Label='Situação';
+Attrib V310      Format= V310F.    Length= 3.        
+ Label='Sexo';
+Attrib V100      Format= V100F.    Length= 3.        
+ Label='Meses do ano';
+Attrib V320      Format= V320F.    Length= 3.        
+ Label='Relação com o chefe';
+Attrib V110      Format= V110F.    Length= 3.        
+ Label='Tipo do domicílio';
+Attrib V120      Format= V120F.    Length= 3.        
+ Label='Condição de ocupação';
+Attrib V330      Length= 3.        
+ Label='Código idade';
+Attrib V335      Length= 3.        
+ Label='Idade meses / Anos';
+Attrib V130      Format= V130F.    Length= 3.        
+ Label='Aluguel mensal';
+Attrib V140      Format= V140F.    Length= 3.        
+ Label='Abastecimento de água';
+Attrib V340      Format= V340F.    Length= 3.        
+ Label='Religião';
+Attrib V150      Format= V150F.    Length= 3.        
+ Label='Instalação sanitária';
+Attrib V350      Format= V350F.    Length= 3.        
+ Label='Cor';
+Attrib V360      Format= V360F.    Length= 3.        
+ Label='Naturalidade';
+Attrib V160      Format= V160F.    Length= 3.        
+ Label='Fogão';
+Attrib V370      Format= V370F.    Length= 3.        
+ Label='Nacionalidade';
+Attrib V170      Format= V170F.    Length= 3.        
+ Label='Iluminação elétrica';
+Attrib V180      Format= V180F.    Length= 3.        
+ Label='Rádio';
+Attrib V380      Format= V380F.    Length= 3.        
+ Label='Procedência';
+Attrib V190      Format= V190F.    Length= 3.        
+ Label='Geladeira';
+Attrib V390      Format= V390F.    Length= 3.        
+ Label='Tempo de migração';
+Attrib V400      Format= V400F.    Length= 3.        
+ Label='Lugar de residência ant';
+Attrib V200      Format= V200F.    Length= 3.        
+ Label='Televisão';
+Attrib V210      Length= 3.        
+ Label='Total de cômodos';
+Attrib V410      Format= V410F.    Length= 3.        
+ Label='Alfabetização';
+Attrib V220      Length= 3.        
+ Label='Peças servindo dormitório';
+Attrib V420      Format= V420F.    Length= 3.        
+ Label='Última série concluiu';
+Attrib V430      Format= V430F.    Length= 3.        
+ Label='Grau do curso';
+Attrib V450      Format= V450F.    Length= 3.        
+ Label='Curso completo';
+Attrib V460      Format= V460F.    Length= 3.        
+ Label='Estado conjugal';
+Attrib V470      Format= V470F.    Length= 3.        
+ Label='Ano do casamento';
+Attrib V480      Format= V480F.    Length= 3.        
+ Label='Filhos tidos';
+Attrib V490      Length= 3.        
+ Label='Filhos vivos';
+Attrib V500      Format= V500F.    Length= 3.        
+ Label='Rendimentos';
+Attrib V510      Format= V510F.    Length= 3.        
+ Label='Atividade não econo';
+Attrib V520      Format= V520F.    Length= 3.        
+ Label='Ocupação habitual';
+Attrib V530      Format= V530F.    Length= 3.        
+ Label='Ocupação na última se';
+Attrib V540      Format= V540F.    Length= 3.        
+ Label='Ramo e classe de ati';
+Attrib V550      Format= V550F.    Length= 3.        
+ Label='Posição na ocupação';
+
+
