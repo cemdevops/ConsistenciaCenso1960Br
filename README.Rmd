@@ -1,10 +1,11 @@
 ---
 title: "Consistência da Amostra de 1,27%  do Censo de 1960"
 author: "Rogério Jerônimo Barbosa"
-date: "19 de agosto de 2018"
+date: "20 de agosto de 2018"
 output:
   word_document: default
-  html_document: default
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -106,7 +107,6 @@ Sob esta suposição, apenas os registros identificados como v101 == 1, 2 ou 3 s
 
 ***
 
-
 ## Abertura dos dados e identificação de registros de famílias e pessoas
 
 Inicialmente, o arquivo de dados foi aberto como um grande arquivo de texto (formato character/string), sem separação de colunas.
@@ -125,8 +125,7 @@ n_linhas   <- length(c60_string)
 Todos os registros apresentaram o mesmo tamanho:
 
 ```{r}
-caracteres = nchar(c60_string)
-freq(caracteres, plot = F)
+freq(nchar(c60_string), plot = F)
 ```
 
 Foi preciso então identificar e separar os registros de famílias e pessoas. A princípio, de acordo com o layout descrito nas sintaxes de abertura, essa informação estaria contida no caractere da posição 17 no arquivo de dados. A frequencia das categorias dessa variável revela a seguinte distribuição:
@@ -192,7 +191,7 @@ Veremos adiante que esses dois casos problemáticos são registros corrompidos -
 
 Aplicamos então a função especificamente construída para aplicar o arquivo de layout sobre os dados, separando as colunas e testando se os valores das observacoes em cada variavel estão de fato listadas dentro do escopo de possibilidades definidas no dicionario:
 
-```{r, results='hide'}
+```{r}
 censo1960_hh <- aplicaTesta_layout(dados_string = c60_string_hh,
                                    input        = input_hh) %>%
         mutate(
@@ -308,11 +307,13 @@ Os registros marcados como `ok` são aqueles que trazem problemas em apenas uma 
 
 ```{r}
 censo1960_hh %>%
-        filter(!(num_linha_dom %in% hh_linhas_problemas)) %>% # neste passo nao analisaremos os registros problematicos
+        
+        # neste passo nao analisaremos os registros problematicos
+        filter(!(num_linha_dom %in% hh_linhas_problemas)) %>% 
         filter(V101 == 3) %>%
         select(starts_with("V")) %>%
         select(V102:V113) %>%
-        map(., function(x) freq(x, plot=F)) # as frequencias estao todas OK
+        map(., function(x) freq(x, plot=F))
 ```
 
 - O cruzamento entre a especie de domicilio (v101: particular unico, particular com mais de uma familia ou coletivo) e o tipo de domicílio (v102: duravel, rustico, improvisado etc) deve apresentar um padrão específico:
@@ -361,7 +362,7 @@ source("https://raw.githubusercontent.com/antrologos/ConsistenciaCenso1960Br/mas
 
 Abriremos novamente o arquivo de dados em formato fixo aplicando o layout, e, desta vez, adicionando-lhe o resultados dos diagnósticos: 
 
-```{r, results='hide'}
+```{r}
 censo1960_hh <- aplicaTesta_layout(dados_string = c60_string_hh,
                                    input        = input_hh) %>%
         
@@ -408,7 +409,6 @@ censo1960_hh <- left_join(x = censo1960_hh,
                           y = casos_problematicos %>%
                                   select(num_linha_dom, cem_problematic_vars_list_dom),
                           by = "num_linha_dom")
-
 ```
 
 Substituimos então os valores invalidos por missing:
@@ -491,6 +491,18 @@ pess_linhas_problemas_1 <- censo1960_pess %>%
         .$num_linha_pess
 ```
 
+As seguintes linhas do arquivo de dados original (`r length(pess_linhas_problemas_1)` no total) apresentaram problemas desta natureza. Alguns exemplos desse desse tipo de ocorrência são:
+
+```{r}
+writeLines(c60_string[pess_linhas_problemas_1[1:10]])
+```
+
+Observe que no último caso do exemplo acima, não há apenas dígitos, mas também caracteres do alfabeto, formando, aproximadamente, a palavra "BAHIA". Trate-se muito provavelmente de um erro de gravação em consequência das mudanças de mídia, formato e esquemas de codificação. O dicionário de códigos que acompanhava o conjunto de dados recebidos como doação pelo Centro de Estudos da Metrópole menciona que ao menos um processo do tipo teria sido realizado para a amostra de 25%:
+
+> O ARQUIVO ORIGINAL ESTAVA GRAVADO EM FORMATO EBCDIC (FORMATO PARA MÁQINAS IBM) E ALGUMAS VARIÁVEIS EM CÓDIGO BINÁRIO. OS DADOS FORAM RECUPERADOS E GRAVADOS EM FORMATO ASCII. ESTE TRABALHO FOI REALIZADO PELO POPULATION RESEARCH CENTER DA UNIVERSIDADE DO TEXAS–AUSTIN, EM COMUM ACORDO COM O IBGE. 
+
+Há razões para crer que procedimentos de leitura, gravação e conversão do mesmo gênero teriam ocorrido também para a amostra de 1,27%.
+
 Passamos à identificação do segundo tipo de problema: a presença de caracteres inválidos:
 
 ```{r}
@@ -502,6 +514,14 @@ pess_linhas_problemas_2 = grep(pattern = "[[:alpha:]]|[[:cntrl:]]|[[:punct:]]" ,
 pess_linhas_problemas_2 = censo1960_pess[pess_linhas_problemas_2,"num_linha_pess"] %>% unlist()
 ```
 
+No todo, foram encontrados `r length(pess_linhas_problemas_2)` desse tipo. São exemplos desta ocorrência:
+
+```{r}
+writeLines(c60_string[pess_linhas_problemas_2[1:10]])
+```
+
+Repare que novamente nos deparamos com o registro que contém caracteres formando, de modo aproximado, a palavra "BAHIA" (UF da qual o registro de fato faria parte, de acordo com os dois dígitos iniciais). Ou seja, os dois métodos de identificação de erros capturam os problemas existentes nessa linha. Além disso, observamos que um caso bastante semelhante ocorre logo em seguida, no qual se forma, também de forma aproximada, a palavra "GUANABARA". Esses são dois registros completamente corrompidos, que, por precaução, deverão ser ignorados. **Casos dessa natureza terão suas variáveis marcadas como missing e serão assinalados, em variável apropriada, criada pelo Centro de Estudos da Metrópole, como registros inutilizáveis para a maioria das análises**. 
+
 Por fim, buscamos pela presença de caracteres adicionais, separando variáveis e valores que deveriam ser adjacentes nos dados:
 
 ```{r}
@@ -510,6 +530,12 @@ pess_linhas_problemas_3 = grep(pattern = "[[:digit:]][[:blank:]]{1,3}[[:digit:]]
                              x       = c60_string_pess)
 pess_linhas_problemas_3 = censo1960_pess[pess_linhas_problemas_3,"num_linha_pess"] %>% unlist()
 
+```
+
+São exemplos desse tipo de ocorrência:
+
+```{r}
+writeLines(c60_string[pess_linhas_problemas_3[1:10]])
 ```
 
 Compilamos num objeto as linhas detectadas como problemáticas segundo as três definições acima e salvamos num arquivo separado os dados e diagnósticos sobre os registros de pessoas, que serão avaliados manualmente: 
@@ -523,22 +549,28 @@ write.csv2(x = censo1960_pess %>%
                    mutate(string = c60_string_pess) %>%
                    filter(num_linha_pess %in% pess_linhas_problemas) %>%
                    select(num_linha_pess, string, starts_with("test_"), contains_invalid),
-           file = "linhas_problematicas_pessoas.csv",
+           file = "Auxiliary Files/linhas_problematicas_pessoas.csv",
            row.names = F)
 ```
+
+Trata-se, assim, de um banco de dados consistido dos registros de família. Resta ainda construir o banco de domicílios e realizar procedimentos de consistência, comparando-o com os dados de pessoas (a serem analisados na seção seguinte).
 
 
 #### Corrigindo os registros de pessoas
 
-Uma vez realizado o diagnóstico manual, carregamos os seus resultados
+Uma vez realizado o diagnóstico manual, carregamos os seus resultados:
 
 ```{r}
 checks_pess <- read_xlsx("Auxiliary Files/check_line_by_line.xlsx", sheet = "persons")
 ```
 
+E, tal como fizemos anteriormente, executamos uma breve rotina que assinala os casos problemáticos:
+
 ```{r}
 source("https://raw.githubusercontent.com/antrologos/ConsistenciaCenso1960Br/master/Code/Persons_diagnostics_procedure.R")
 ```
+
+Aplicamos então o arquivo de layout sobre os registros de pessoas para gerar novamente um banco de dados com separação de colunas -- adicionando a variável de diagnóstico, recém-criada.
 
 ```{r}
 censo1960_pess <- aplicaTesta_layout(dados_string = c60_string_pess,
@@ -548,8 +580,7 @@ censo1960_pess <- aplicaTesta_layout(dados_string = c60_string_pess,
         select(num_linha_pess, everything())
 ```
 
-
-Identifica linhas que contem ao menos um erro
+Marcamos as linhas que contem ao menos um erro:
 
 ```{r}
 censo1960_pess$cem_vars_still_problematic_pess <- censo1960_pess %>% 
@@ -559,7 +590,7 @@ censo1960_pess$cem_vars_still_problematic_pess <- censo1960_pess %>%
         rowSums(.) 
 ```
 
-Identificando as variaveis problematicas nos casos problematicos
+E criamos a coluna adicional que identifica e nomeia todas as variaveis problematicas em cada registro:
 
 ```{r}
 casos_problematicos <- censo1960_pess %>%
@@ -587,8 +618,15 @@ censo1960_pess <- left_join(x = censo1960_pess,
                           by = "num_linha_pess")
 ```
 
+Ao fim, os casos corrompidos terão marcações como as do exemplo abaixo:
 
-Substituindo valores invalidos por missing
+```{r}
+censo1960_pess %>%
+        filter(cem_problematic_vars_list_pess != "") %>%
+        select(num_linha_pess, cem_problematic_vars_list_pess)
+```
+
+Substituiremos então os valores invalidos por missing. Uma estratégia alternativa a esse passo seria lançar mão de métodos probabilísticos de imputação de dados faltantes (como a Imputação Múltipla, por exemplo). No entanto, decidimos por deixar a cargo dos futuros usuários a avaliação da necessidade desse procedimento.
 
 ```{r}
 num_linha_pess_prob <- censo1960_pess %>%
@@ -607,7 +645,7 @@ for(i in num_linha_pess_prob){
 }
 ```
 
-Compilando o banco de pessoas (quase) final 
+Compilamos, por fim, uma versão "semi-final" do banco de pessoas, após os procedimentos de consistência. Eles deverão ainda ser combinados com os dados de domicílios e as informações que se repetem nos dois tipos de registro (como UF, Município e área de residência) deverão ainda ser contrastadas. 
 
 ```{r}
 censo1960_pess_numeric <- censo1960_pess%>%
@@ -627,22 +665,33 @@ censo1960_pess_semifinal <- cbind(censo1960_pess_numeric, censo1960_pess_charact
 
 ## Identificando domicílios
 
-A familia 165232 tinha informacao invalida na V101 (valor 0). 
-Alteramos isso para 1 ("Domic. Part Unico") e atribuimos um ID de domicilio
+O primeiro passo para a criação de um banco de domicílios a partir dos dados de famílias e pessoas é a elaboração de um ID único para cada domícilio. Como vimos anterioremente, as variáveis V101 e V102 são essenciais para esse passo, por identificarem os tipos de família e composição dos moradores.
+
+Observamos que dois registros do banco de famílias, contudo, não possuem informação para a V101:
+
+```{r}
+censo1960_hh_preliminar %>% 
+        filter(is.na(V101 == 0)) %>%
+        select(ID)
+   
+```
+
+O registro com ID 155539 será tratado adiante.
+
+A família com ID 165232, por sua vez, tinha informação inválida na V101 (valor 0). Em passos anteriores, esse valor foi substituído por missing. Alteraremos esse campo para  1 (código referente aos "Domicílios Particulares Únicos"). Avaliando os casos que precedem e sucedem esse registro, ele não parece estar ligado a outros domicílios (i.e. não parece ser uma família principal, secundária ou terciária). Além disso, a estrutura familiar de seus moradores não é indicativa de um domicílio coletivo.
 
 ```{r}
 censo1960_hh_preliminar <- censo1960_hh_preliminar %>% 
         mutate(V101 = ifelse(ID == 165232, 1, V101))
 ```
 
-Ha um caso de missing para essa variavel. Mas, por definicao, se esta no banco de domicilios/familias,
-entao seu valor deve ser igual a 1
+Outra inconsistência que devemos resolver neste momento refere-se à presença de um caso de missing para a variavel sobre tipo de registro (que diferenciava pessoas e domicílios). Esse valor missing era anteriormente inexistente -- foi atribuído em meio aos procedimentos de consistência, pelo fato de que o registro ao qual se refere estava majoritariamente corrompido. Assumiremos que se trata mesmo de um domicílio, atribuindo-lhe o valor para a variável em questão:
 
 ```{r}
 censo1960_hh_preliminar$REC_TYPE = 1
 ```
 
-Criando variaveis de ID de domicilio e de familia - separadas
+Criamos então variaveis separadas para os IDs de domicilio e de familia, assinalando ainda os tipos de família encontrados:
 
 ```{r}
 censo1960_hh_preliminar <- censo1960_hh_preliminar %>%
@@ -652,10 +701,13 @@ censo1960_hh_preliminar <- censo1960_hh_preliminar %>%
                n_linha = 1:n())
 ```
 
-CODIFICA??O - cem_tipofamilia
-1  - Familia principal ou unica
-2  - Outras familias
-NA - Nao se aplica (domicilios coletivos)
+A codificação da variável "cem_tipofamilia" será a seguinte:
+
+- **1**  - Familia principal ou unica
+- **2**  - Outras familias
+- **NA** - Nao se aplica (domicilios coletivos)
+
+As linhas sem valores válidos para a variável cem_IDdomicilio devem, deste modo, dizer respeito a famílias conviventes. Por definição, esses registros devem reecber o mesmo ID de domicílios das famílias principais com as quais co-habitam. Para isso, primeiramente, selecionamos esses casos:
 
 ```{r}
 linhas_familias <- censo1960_hh_preliminar %>%
@@ -663,13 +715,10 @@ linhas_familias <- censo1960_hh_preliminar %>%
         .$n_linha
 ```
 
-Para familias secundarias
+Então, para as familias secundarias, copiamos a informação sobre ID de Domicílio do caso anterior (que deve ser, necessariamente, uma família principal):
 
 ```{r}
 for(linha_familia in linhas_familias){
-        
-        print(linha_familia)
-        
         caso_anterior <- censo1960_hh_preliminar[(linha_familia - 1) , "cem_tipofamilia"] == 1 
         dim(caso_anterior) <- NULL
         
@@ -679,14 +728,11 @@ for(linha_familia in linhas_familias){
 }
 ```
 
-Para familias terciarias
+Repetimos o procedimento para as familias terciarias, copiando a informação do caso anterior -- mas agora, apenas se o caso anterior for o de uma família secundária:
 
 ```{r}
 linhas_familias = which(is.na(censo1960_hh_preliminar$cem_IDdomicilio))
 for(linha_familia in linhas_familias){
-        
-        print(linha_familia)
-        
         caso_anterior <- censo1960_hh_preliminar[(linha_familia - 1) , "V101"] == 4
         proprio_caso  <- censo1960_hh_preliminar[(linha_familia ) , "V101"] == 5
                 
@@ -699,15 +745,15 @@ for(linha_familia in linhas_familias){
 }
 ```
 
+Por fim, a antiga variável ID converte-se agora em ID apenas das famílias. E já podemos apagar a variável auxiliar "n_linha", criada para este passo:
 
+```{r}
 censo1960_hh_preliminar <- censo1960_hh_preliminar %>%
         rename(cem_IDfamilia = ID)
 censo1960_hh_preliminar$n_linha = NULL
+```
 
-#### Ajustes
-
-Aparentemente, essa familia 155539 constitui um domicilio autonomo. Nao faz parte do domicilio 155537
-Trata-se de um registro de domicilio corrompido. Que, quando, mais adiante, tem suas informacoes levadas para os registros de pessoas, apresenta discrepancia entre os dados de pessoas e domicilios
+Examinado agora o registro com ID de família igual a 155539, o que observamos é que ele parece constituir um domicilio autonomo, não faz parte do domicilio 155537, que o precede. Trata-se, na realidade, de um registro de domicilio com dados corrompidos. Mais adiante, quando constrastarmos suas informações com aquelas existentes nos registros das pessoas que nele habitam, detectaremos a existência de discrepâncias. Ainda assim, devemos mantê-lo no banco de dados. Neste passo, é preciso separá-lo do domicílio anterior:
 
 ```{r}
 censo1960_hh_preliminar <- censo1960_hh_preliminar %>%
@@ -715,70 +761,58 @@ censo1960_hh_preliminar <- censo1960_hh_preliminar %>%
                V101            = ifelse(cem_IDfamilia == 155539, 1, V101))
 ```
 
+Se identificamos corretamente os domicílios, não deve haver variação de suas características estruturais entre as famílias conviventes. Ou seja: famílias que moram juntas não devem apresentar informações discrepantes com respeito ao número de cômodos, presença de energia elétrica, água etc. Testamos isso por meio do procedimento abaixo. A variância dessas características deve ser igual a zero:
 
-```{r}
+```{r, eval=F}
 test = censo1960_hh_preliminar %>%
         select(-num_linha_dom, -V101, -cem_IDfamilia, -cem_vars_still_problematic_dom,
                -cem_diagnosis_dom, -cem_problematic_vars_list_dom, -cem_tipofamilia) %>%
         select_if(function(x) !is.character(x)) %>%
         group_by(cem_IDdomicilio) %>%
-        summarise_all(var, na.rm= T)
+        summarise_all(stats::var, na.rm= T)
         
-
 domicilios_problema = NULL
 for(i in 2:ncol(test)){
         domicilios_problema <- c(domicilios_problema, test[which(test[,i] > 0 & !is.na(test[,2])),"cem_IDdomicilio"] %>% unlist())
 }
 
-domicilios_problema <- domicilios_problema %>% unique() ##### NENHUM PROBLEMA
+domicilios_problema <- domicilios_problema %>% unique() 
 ```
 
+Nenhum problema foi encontrado: não há domicilios que apresentem variação de caracteristicas entre familias:
 
-nao ha domicilios que apresentam variacao de caracteristicas entre familias:
-
-```{r}
+```{r, eval=F}
 censo1960_hh_preliminar %>%
         filter(cem_IDdomicilio %in% domicilios_problema) 
 ```
 
-
-Assumo que a familia 121705 pertence ao domicilio da familia 121704
-
-
-## Conectandos os bancos de pessoas e domicilios/familias
+Temos então um banco de famílias, com marcações dos IDs dos domicílios aos quais pertencem.
 
 
-### Testes iniciais
+## Importando IDs de domicílio para o banco de pessoas
 
-1 - Checando se o numero de linhas no banco de domicilios/familias ? identico ao n?mero de IDs
+No banco de famílias, devemos então checar se o número de linhas é identico ao número de IDs:
 
-```{r}
+```{r, collapse=T}
 length(censo1960_hh_preliminar$cem_IDfamilia)
 length(censo1960_hh_preliminar$cem_IDfamilia %>% unique()) #ok
-
-length(censo1960_hh_preliminar$place_holder_09_16 %>% unique()) #ok -- indicando novamente que essa string pode indicar ID de domic?lios/fam?lias
 ```
 
-2 - Checando se o numero de IDs de domicilio/familia no banco de pessoas ?  identico ao n?mero de IDs no banco de domicilios
+No banco de pessoas, checamos se o número de IDs de familia é identico ao número de linhas no banco de famílias:
 
-```{r}
+```{r, collapse=T}
 censo1960_pess_semifinal <- censo1960_pess_semifinal %>%
         rename(cem_IDfamilia = ID)
 length(censo1960_pess_semifinal$cem_IDfamilia %>% unique()) # ok
-
-length(censo1960_pess_semifinal$place_holder_09_16 %>% unique()) - 174467 # DISCREP?NCIA... QUE PODE INDICAR QUE ESSA STRING OU N?O ? O ID DE FAM?LIA OU EST? CORROMPIDA
 ```
 
-Todos os IDs de familia listados no arquivo de pessoas estao contemplados no arquivo de domicilios:
+Por fim, verificamos se todos os valores listados como IDs de familia no arquivo de pessoas estão de fato contemplados no arquivo de famílias. E não encontramos nenhuma discrepância:
 
 ```{r}
 sum( !(censo1960_pess_semifinal$cem_IDfamilia %in% censo1960_hh_preliminar$cem_IDfamilia) ) # ok!
 ```
 
-### MERGE DE DOMICILIOS E PESSOAS 
-
-TRAZENDO OS IDs de DOMICILIO PARA OS INDIVIDUOS -- O que possibilitar? o merge com o banco 
-APENAS de domicilios (e nao de familias) depois
+Como o pareamento existe, podemos trazer a informação recém-criada sobre ID de domicílio para os registros de indivíduos:
 
 ```{r}
 censo1960_pess_semifinal <- left_join(x = censo1960_pess_semifinal,
@@ -787,60 +821,45 @@ censo1960_pess_semifinal <- left_join(x = censo1960_pess_semifinal,
                                   by = "cem_IDfamilia")
 ```
 
+## Construindo um banco de domicílios
 
-BANCO DE DOMICILIOS - SEMIFINAL - ELIMINANDO FAMILIAS
+Para construir um banco de domicílios daquele sobre famílias, devemos remover os registros de familias secundarias e terciarias, mantendo apenas as unicas, principais e os domicilios coletivos. Podemos também remover algumas variáveis desnecessárias:
 
 ```{r}
 censo1960_hh_semifinal = censo1960_hh_preliminar %>%
-        filter(!(V101 %in% c(4,5))) %>%  # remove familias secundarias e terciarias -- mantendo apenas familias unicas, principais e domicilios coletivos
-        select(-cem_tipofamilia, -cem_IDfamilia, -REC_TYPE) # remove variaveis desnecessarias ou apenas de familia
+        filter(!(V101 %in% c(4,5))) %>%  
+        select(-cem_tipofamilia, -cem_IDfamilia, -REC_TYPE) 
 ```
 
+Problemas de gravação em dois registros adjacentes voltam agora a ser relevantes. Trata-se das linhas 293555 e 293556 do arquivo original:
 
-Problemas nos registros das linhas 293555 e 293556
+293555. `31   M       1BA33HIA                                 \0046690`
+293556. `31 1 80731608050352911557059200031100000000034        \0046690`
 
-Como se v?, est?o, ambos, com problemas de grava??o. O 293555, inclusive, ? um dos piores
+Visualisando esses dois registros dentro de um contexto maior, observamos que estão justamente na fronteira entre dois estados: Sergipe (UF=30) e Bahia (UF=31). Então, no entanto, sendo atribuidos ao domicilio de Sergipe dos casos que os antecedem: de ID=0046690. Há, deste modo, uma constradição entre a informação do ID e a da UF.
 
 ```{r}
-writeLines(c60_string[293552:293560]) # dentro de um contexto maior
+writeLines(c60_string[293552:293560])
 ```
 
-Est?o justamente na fronteira entre os casos de Sergipe (UF=30) e Bahia (UF=31). 
-Est?o sendo atribuidos ao domicilio de Sergipe, de ID=0046690. Por?m, iniciam a string com o valor 31 -- que indica Bahia.
+A palavra "BAHIA", presente no registro 293555, é forte evidência de que se trataria, de fato, de um caso daquela UF. Devemos então estabelecer uma  regras de desambiguação desses dois registros -- **isso afetará o número de casos únicos de domicílios e famílias**. Mas uma  observação pode facilitar a decisão. Os IDs de família (caracteres nas posições 56-62) parecem ter sido criados a posteriori, não sendo dados originais. Se isso for verdade, podem conter erros. A numeracao daqueles IDs parece seguir sempre uma mesma lógica: seguindo a ordem dos casos no banco de dados, inicia-se um novo valor que o caracteres da posição 17 assume o valor 1 (que seria indicativo de família/domicílio). Como, nesse caso, o registro da linha 293555 está corrompido, não teria havido uma nova contagem do ID. Provavelmente, por esta razão, o numero do domicilio continuou o mesmo dos registros anteriores.
 
-Al?m disso, o registro 293555 cont?m a palavra BAHIA -- evid?ncia mais forte ainda de que se trataria de um caso daquela UF
+Para iniciar um novo ID temos então duas saídas:
 
-Temos entao que decidir o que fazer com esses dois registros.
+1. Assumir que o registro da linha 293555 é ele mesmo um domicílio (o que poderia ser feito com `substr(c60_string[293555], 17, 17) <- "1")`. 
+2. Criar uma nova linha no banco de dados, representando o domicílio faltante. Com isso, os registros corrompidos seriam entendidos como "pessoas".
 
-OBSERVA??O 1 - SOBRE COMO OS IDs DE DOMICILIOS (CARACTERES 56-62) PARECEM TER SIDO CRIADOS
-A numeracao de ids, que parece ter sido adicionada ao arquivo de dados posteriormente, seguindo a seguinte logica:
+Ambas as soluções envolvem modificação drástica dos dados originais -- o que não parece ser recomendado. No primeiro caso, além disso, o registro da linha 293556 seria compreendido como um indivíduo morando sozinho. Se as demais informações da linha forem consideradas, isso introduziria outros problemas: trataria-se de uma pessoa na posição de "filho" (v203=9, caractere 20), com apenas 15 anos de idade(caracteres 22 e 23) -- o que introduziria uma nova inconsistência. Essas duas soluções parecem ser por demais radicais. **Por esta razão, decidimos não proceder nenhuma alteração, mantendo a inconsistência original**.
 
---- Sempre que encontra o valor 1 no caractere 17, inicia um novo numero de domicilio/familia
+ 
+## Imputação de valores faltantes
 
-Como, nesse caso, o registro da linha 293555 esta corrompido, nao houve nova contagem do id.
-provavelmente, por esta razao o numero de domicilio continuou o mesmo h? presente nos registros anteriores.
-
-OBSERVA??O 2 - PARA INICIAR UM NOVO ID, TER?AMOS DUAS SAIDAS
-
-1 - ASSUMIR QUE O REGISTRO DA LINHA 293555 ? UM DOMICILIO (o que poderia ser feito com substr(c60_string[293555], 17, 17) <- "1") 
-     Mas h? dois problemas ao proceder assim:
-     a) modifica??o dos dados originais
-     b) o indiv?duo do registro 293556 vai morar sozinho. E, aparentemente, ele est? na posi??o de filho (v203=9, caractere 20),
-        e tem apenas 15 anos (caracteres 22 e 23)
-
- 2 - CRIAR UMA NOVA LINHA NO BANCO DE DADOS, QUE REPRESENTE O DOMICILIO/A FAMILIA FALTANTE
-
- ESSAS DUAS SOLU??ES PARECEM SER MUITO RADICAIS.
-
- POR ENQUANTO, A MELHOR OP??O PARECE SER N?O MEXER EM NADA 
-
-
-# BANCO SEMIFINAL DE PESSOAS - COM VARIAVEIS DE DOMICILIOS
+Há variáveis que se repetem tanto nos registros de pessoas e domicílios: UF, V116 (Município) e V118 (área de residência, se rural ou urbana). Esse fato permite que, nos casos de informação faltante ou corrompida, seja possível copiar o dado do outro tipo de registro. Iniciamos então pela importação dos dados de domicílios para os registros de pessoas:
 
 ```{r}
 censo1960_pess_semifinal <- left_join(x = censo1960_pess_semifinal, 
                                   y = censo1960_hh_semifinal %>%
-                                          select(-V101),  # nao seleciona a variavel V101 pois ela ja foi importada antes
+                                          select(-V101),  
                                   by = "cem_IDdomicilio") %>%
         rename(UF_pess   = UF.x,
                UF_dom    = UF.y,
@@ -850,10 +869,7 @@ censo1960_pess_semifinal <- left_join(x = censo1960_pess_semifinal,
                V118_dom  = V118.y)
 ```
 
-
-## IMPUTACAO DE VALORES FALTANTES
-
-Identificando casos em que ha missing apenas numa das fontes de informacao (ou pessoas ou domicilios)
+Identificamos agora os casos em que há missing apenas numa das fontes de informacao (ou pessoas ou domicilios):
 
 ```{r}
 censo1960_pess_semifinal <- censo1960_pess_semifinal %>%
@@ -866,7 +882,7 @@ censo1960_pess_semifinal <- censo1960_pess_semifinal %>%
                )
 ```
 
-Complementando informacoes: quando ha missing na variavel de domicilio, atribui o valor observado no registro de pessoa e vice-versa 
+Iniciamos o procedimento de imputação pela cópia de informações: quando há missing na variável de domicílio, lhe atribuímos o valor observado no registro de pessoa e vice-versa:
 
 ```{r}
 censo1960_pess_semifinal <- censo1960_pess_semifinal %>% 
@@ -881,7 +897,7 @@ censo1960_pess_semifinal <- censo1960_pess_semifinal %>%
                )
 ```
 
-Deletando variaveis temporarias
+Deletando então as variaveis temporarias utilizadas nesse procedimento:
 
 ```{r}
 censo1960_pess_semifinal$cem_UF_missingDom_notmissingPerson   = NULL
@@ -892,170 +908,127 @@ censo1960_pess_semifinal$cem_V118_missingDom_notmissingPerson = NULL
 censo1960_pess_semifinal$cem_V118_missingPerson_notmissingDom = NULL
 ```
         
-AJUSTES PONTUAIS: ATRIBUINDO VALORES VALIDOS PARA PESSOAS COM MISSING DENTRO DE DOMICILIOS EM QUE 
-HA INDIVIDUOS COM VALORES VALIDOS PARA SERVIREM DE "DOADORES"
+Podemos ainda atribuir valores para pessoas com missing, tomando como doadores as informações de outroso indivíduos residentes no mesmo domicílio. 
+
+#### Identificando casos de missing na variavel de UF
 
 ```{r}
 censo1960_pess_semifinal = data.table(censo1960_pess_semifinal)
-```
-
-
-**Identificando casos de missing na variavel de UF**
-
-```{r}
 censo1960_pess_semifinal[ , num_NA_UF_dom  := sum(is.na(UF_dom)),  by = cem_IDfamilia]
 censo1960_pess_semifinal[ , num_NA_UF_pess := sum(is.na(UF_pess)), by = cem_IDfamilia]
-censo1960_pess_semifinal[ num_NA_UF_dom > 0  | num_NA_UF_pess > 0 , ] %>% View()
+censo1960_pess_semifinal[ num_NA_UF_dom > 0  | num_NA_UF_pess > 0 , ]
 ```
 
+O domicílio/família 155539 era um caso de registro corrompido para a variavel UF. Lançamos mão, então de informações advindas de casos doadores:
 
 ```{r}
-        # DOMICILIO/FAMILIA 155539 - Era um caso problematico na variavel UF. Mas era possivel
-        # resolver esse problema com valores doadores de outros casos
-        censo1960_pess_semifinal[cem_IDfamilia == 155539, UF_pess := 81] 
-        censo1960_pess_semifinal[cem_IDfamilia == 155539, UF_dom  := 81] 
-        censo1960_pess_semifinal[cem_IDfamilia == 155539, V116_pess := 8006] 
-        censo1960_pess_semifinal[cem_IDfamilia == 155539, V116_dom  := 8006] 
-        censo1960_pess_semifinal[cem_IDfamilia == 155539, V118_pess := 5] 
-        censo1960_pess_semifinal[cem_IDfamilia == 155539, V118_dom  := 5] 
-        censo1960_pess_semifinal[cem_IDfamilia == 155539, V101 := 1] 
+censo1960_pess_semifinal[cem_IDfamilia == 155539, UF_pess := 81] 
+censo1960_pess_semifinal[cem_IDfamilia == 155539, UF_dom  := 81] 
+censo1960_pess_semifinal[cem_IDfamilia == 155539, V116_pess := 8006] 
+censo1960_pess_semifinal[cem_IDfamilia == 155539, V116_dom  := 8006] 
+censo1960_pess_semifinal[cem_IDfamilia == 155539, V118_pess := 5] 
+censo1960_pess_semifinal[cem_IDfamilia == 155539, V118_dom  := 5] 
+censo1960_pess_semifinal[cem_IDfamilia == 155539, V101 := 1] 
+censo1960_pess_semifinal[cem_IDfamilia == 155539]
 ```
 
 
-** Identificando casos de missing na variavel v116 ** 
-Depois de resolver o caso da familia 155539, apenas sobra um registro
+#### Identificando casos de missing na variavel v116 ** 
+
+O domicílio/família 145606, com informação faltante na variável v116 não poderá ser corrigido. Trata-se de uma residencia com um único morados. Logo, não é possível encontrar doadores.
+
 
 ```{r}
 censo1960_pess_semifinal[ , num_NA_V116_dom  := sum(is.na(V116_dom)),  by = cem_IDfamilia]
 censo1960_pess_semifinal[ , num_NA_V116_pess := sum(is.na(V116_pess)), by = cem_IDfamilia]
-censo1960_pess_semifinal[ num_NA_V116_dom > 0  | num_NA_V116_pess > 0 , ] %>% View()
+censo1960_pess_semifinal[ num_NA_V116_dom > 0  | num_NA_V116_pess > 0 ]
 ```
 
-
-
-** DOMICILIO/FAMILIA 145606 **
-                
-O Problema ? que s? h? uma pessoa nesse domicilio. N?o ? poss?vel tomar o valor de doadores dentro do domicilio
-
-```{r}
-censo1960_pess_semifinal[ cem_IDdomicilio == 145606] %>% View()
-```
-
-     
-NADA A FAZER - H? MISSING NA VARIAVEL V116 TANTO PARA PESSOAS COMO PARA DOMICILIOS E S? UMA PESSOA HABITA O DOMICILIO
-
-
-```{r}
-censo1960_pess_semifinal[cem_IDfamilia %in% 145604:145608] %>% View() 
-```
-   
 
 ** Identificando casos de missing na variavel v118**
 
-Depois de resolver o caso da familia 155539, nao sobre nenhum registro
+Não há necessidade de registros doadores para a variável V118:
 
 ```{r}
 censo1960_pess_semifinal[ , num_NA_V118_dom  := sum(is.na(V118_dom)),  by = cem_IDfamilia]
 censo1960_pess_semifinal[ , num_NA_V118_pess := sum(is.na(V118_pess)), by = cem_IDfamilia]
-censo1960_pess_semifinal[ num_NA_V118_dom > 0  | num_NA_V118_pess > 0 , ] %>% nrow() # nenhum problema
+censo1960_pess_semifinal[ num_NA_V118_dom > 0  | num_NA_V118_pess > 0 ]
 ```
 
 
-Transformado o objeto de volta em tibble
+## Inconsistências entre pessoas e domicílios
+
+Há inconsistências incontornáveis entre o restante dos dados de domicílios e pessoas: informações discrepantes sobre UF de residência, município e local de moradia (rural/urbano). Assinalaremos esses registros com váriáveis adicionais, contruídas para esse fim:
 
 ```{r}
+# Transformado o objeto de volta em tibble
 censo1960_pess_semifinal = as_tibble(censo1960_pess_semifinal) %>%
         select(-starts_with("num_NA_"))
-```
 
-
-## CONSISTENCIAS ENTRE VARIAVEIS DE DOMICILIO E PESSOAS 
-
-```{r}
 censo1960_pess_semifinal$cem_dissonant_UF   = as.numeric(!(censo1960_pess_semifinal$UF_pess   == censo1960_pess_semifinal$UF_dom))
 censo1960_pess_semifinal$cem_dissonant_V116 = as.numeric(!(censo1960_pess_semifinal$V116_pess == censo1960_pess_semifinal$V116_dom))
 censo1960_pess_semifinal$cem_dissonant_V118 = as.numeric(!(censo1960_pess_semifinal$V118_pess == censo1960_pess_semifinal$V118_dom))
 ```
 
-
-** Problemas que permanecem na vari?vel UF **
+Casos que permanecem problemáticos na variável UF (3 registros):
 
 ```{r}
 censo1960_pess_semifinal %>%
         filter((cem_dissonant_UF %in% 1   | is.na(cem_dissonant_UF)  )) %>%
-        select(UF_dom, UF_pess, cem_diagnosis_dom, cem_diagnosis_pess, cem_IDdomicilio, cem_IDfamilia, everything()) %>%
-        View() # 3 dissonancias
-
-        # DOMICILIO/FAMILIA 2192
-        censo1960_pess_semifinal %>%
-                filter(cem_IDdomicilio %in% 2190:2194) %>% View()
+        nrow()
+        
 ```
 
-
-
-** Problemas que permanecem na vari?vel V116 **
+Casos que permanecem problemáticos na variável v116 (44 registros):
 
 ```{r}
 censo1960_pess_semifinal %>%
         filter( (cem_dissonant_V116 == 1 | is.na(cem_dissonant_V116)) ) %>% 
-        nrow() # 44 dissonancias
+        nrow() 
 ```
 
-
-** Problemas que permanecem na vari?vel V118 **
+Casos que permanecem problemáticos na variável v118 (280 registros):
 
 ```{r}
 censo1960_pess_semifinal %>%
         filter((cem_dissonant_V118 == 1 | is.na(cem_dissonant_V118))) %>%
-        nrow() # 280 dissonancias
+        nrow() 
 ```
 
-
-** Total de problemas que permanecem no banco **
+Total de registros problemáticos que permanecem no banco: 299.
 
 ```{r}
 censo1960_pess_semifinal %>%
         filter((cem_dissonant_UF == 1   | is.na(cem_dissonant_UF) ) |
                (cem_dissonant_V116 == 1 | is.na(cem_dissonant_V116))|
                (cem_dissonant_V118 == 1 | is.na(cem_dissonant_V118))) %>%
-        select(UF_pess, UF_dom, 
-               V116_pess, V116_dom, 
-               V118_pess, V118_dom, 
-               cem_diagnosis_pess, cem_diagnosis_dom,
-               everything()) %>% nrow #%>% View() # 299 dissonancias ao total
+        nrow()
 ```
 
+## Re-criando o banco de domicílios (após as imputações) a partir dos dados de pessoas
 
-
-## RE-CRIACAO DO BANCO DE DOMICILIOS A PARTIR DO DE PESSOAS (NECESSARIO APOS AS IMPUTACOES) 
-
-Fazendo ultimas transformacoes necessarias
+No banco de pessoas, criamos algumas variáveis adicionais: um identificador de moradores (que exclui pessoas listadas como "não moradores presentes") e o peso dos indivíduos (lançando mão das informações sobre a fração amostral). Essas informações serão usadas para produzir variáveis sobre domicílios: número de pessoas em cada domicílio e o próprio peso dos domicílios. Calculamos também o número de famílias por domicílio (lembrando que, por definição, o Censo de 1960 considera como domicílios coletivos aqueles com 4 ou mais famílias conviventes).
 
 ```{r}
 censo1960_pess_semifinal <- censo1960_pess_semifinal %>%
         mutate(ind_morador = as.numeric(V203 %in% c(0:3, 7:9)),
                ind_morador = ifelse(is.na(ind_morador), 0, ind_morador),
-               
-               # CRIA A VARIAVEL PESO
                cem_wgt = 1/0.0127) %>%
         
         group_by(cem_IDdomicilio) %>%
         mutate(cem_num_moradores = n(),
-        
-               # CRIA VARIAVEL QUE ESTAVA LISTADA NO DICIONARIO
                cem_num_familias  = length(unique(cem_IDfamilia)), 
                cem_num_familias  = ifelse(V101 == 3, NA, cem_num_familias), 
-               
-               # CRIA VARIAVEL QUE ESTAVA LISTADA NO DICIONARIO
                cem_num_pessoas   = sum(ind_morador),              
                ind_morador = NULL) %>%
         ungroup()
 ```
 
+Procedemos então a agregação das informações das pessoas por IDs de domicílios. Com essa operação, re-criamos os registros de domicílios a partir da sumarização das informações individuais. Obviamente, apenas utilizamos as variáveis cabíveis, que não apresentam variações entre moradores de uma mesma residência -- aquelas iniciadas por "V1", UF e aquelas criadas acima, nos procedimentos anteriores. 
 
-## Domicilios
-        
-```{r}
+Como procedimento para agregação dos casos, calcularemos o valor máximo de cada variável dentro do domicílio. Trata-se de uma operação arbitrária: como todos os indivíduos que co-habitam apresentam necessariamente valores idênticos, poderíamos ter calculado a média, o mínimo, a mediana ou qualquer outra medida. No entanto, todas essas se aplicam apenas aos dados numéricos. Aplicaremos um procedimento de sumarização para as variaveis de tipo character separadamente.
+
+```{r, message = FALSE, warning= FALSE}
 censo1960_hh_final <- censo1960_pess_semifinal %>%
         select(UF_dom,  starts_with("V1"),
                ends_with("_dom"), -ends_with("pess"), 
@@ -1073,9 +1046,28 @@ censo1960_hh_final <- censo1960_pess_semifinal %>%
 
 ```
 
+No passo a seguir, sumarizamos apenas a variável character faltante:
 
 ```{r}
+censo1960_hh_tmp <- censo1960_pess_semifinal %>% 
+        select(cem_IDdomicilio, cem_problematic_vars_list_dom) %>%
+        group_by(cem_IDdomicilio) %>%
+        summarise(cem_problematic_vars_list_dom = first(cem_problematic_vars_list_dom))
+```
 
+A partir dos IDs de domicílio, fundimos os dois bancos-sumário:
+
+```{r}
+censo1960_hh_final <- censo1960_hh_final %>%
+        left_join(x  = .,
+                  y  = censo1960_hh_tmp,
+                  by = "cem_IDdomicilio")
+names(censo1960_hh_final) = tolower(names(censo1960_hh_final))
+```
+
+Por fim, re-ordenamos as variáveis e eliminamos da lista da variáveis problemáticas a coluna "REC_TYPE" (que já não consta mais no banco de dados):
+
+```{r}
 censo1960_hh_final <- censo1960_hh_final %>%
         select(uf, v116, v118, cem_iddomicilio, 
                v101, v102, cem_wgt,
@@ -1097,26 +1089,38 @@ censo1960_hh_final <- censo1960_hh_final %>%
         )
 ```
 
-### Domicílios: Arquivo Final
+Obtemos então a **versão final do banco de domicílios** e a salvamos em disco:
 
-```{r}
-write.csv(x = censo1960_hh_final,   
-          file = paste0(output_dir, "/Censo.1960.brasil.domicilios.amostra.1.27porcento.csv"),
+```{r, message = FALSE, warning= FALSE}
+data_address <- "Data - After Consistency/Censo.1960.brasil.domicilios.amostra.1.27porcento.csv"
+
+fwrite(x = censo1960_hh_final,   
+          file = data_address,
           na="",
-          row.names = F, 
-          fileEncoding = "utf-8",
+          row.names = F,
           quote = TRUE)
 
+zip::zip(zipfile = 'Data - After Consistency/Censo.1960.brasil.domicilios.amostra.1.27porcento.zip', 
+    files   = data_address)
+
+file.remove(data_address)
+```
+
+A lista de variáveis contidas no arquivo de dados, ao fim, é a seguinte:
+
+```{r}
 names(censo1960_hh_final)
 ```
 
+## O banco de pessoas
 
-## Pessoas
+O banco de pessoas, neste ponto, apenas requer alguns ajustes finais: renomear variáveis, excluir colunas auxiliares e alguma re-ordenação. Iniciamos por fazer com que os nomes de todas as variáveis sejam escritos apenas com letras minúsculas, como fizemos no banco de domicílios:
 
 ```{r}
 names(censo1960_pess_semifinal) = tolower(names(censo1960_pess_semifinal))
 ```
 
+Mantemos então no banco de dados apenas as variáveis finais, excluindo aquelas utilizadas nos passos intermediários da consistência. Renomeamos também a variável idade, anteriormente denominada "age", para v204b. No dicionário de códigos o nome v204 está reservado para a variável "Tipo de Idade" (se em meses ou em anos). O nome "age" era o que constava nas sintaxes recebidas juntamente com o arquivo de dados original.A decisão de denominá-la v204b tem como objetivo manter o padrão de nomeação usual do IBGE e seguir a mesma lógica da variável referente aos setores de atividade econômica, denominada v223b, que também não possuia código próprio (no dicionário, o código v223 é usado para descrever a variável que capta a ocupação na última semana, como o setor de atividade). 
 
 ```{r}
 censo1960_pess_final <- censo1960_pess_semifinal %>%
@@ -1134,7 +1138,11 @@ censo1960_pess_final <- censo1960_pess_semifinal %>%
                -num_linha_dom,
                -cem_vars_still_problematic_dom, -cem_vars_still_problematic_pess) %>% 
         select(starts_with("u"), starts_with("v"), everything()) 
+```
 
+Reordenamos então as variáveis do banco de dados:
+
+```{r}
 censo1960_pess_final <- censo1960_pess_final %>%
         select(uf_pess,uf_dom,v116_pess,v116_dom,v118_pess,v118_dom,
                cem_idindividuo,cem_idfamilia,cem_iddomicilio,cem_wgt,
@@ -1146,10 +1154,9 @@ censo1960_pess_final <- censo1960_pess_final %>%
                cem_diagnosis_pess,cem_problematic_vars_list_pess,cem_diagnosis_dom,
                cem_problematic_vars_list_dom,cem_dissonant_uf,cem_dissonant_v116,
                cem_dissonant_v118)
-
 ```
 
-
+Por fim, substituímos o nome "age" por "v204b", onde houver, na coluna que indica as variáveis problemáticas, dos registros com informações corrompidas.
 
 ```{r}
 censo1960_pess_final <- censo1960_pess_final %>% 
@@ -1168,165 +1175,29 @@ censo1960_pess_final <- censo1960_pess_final %>%
                                        replacement = " ") %>% 
                        tolower()
         )
-
 ```
 
+Salvamos em disco o **arquivo final de pessoas do Censo de 1960**:
+
+```{r, message = FALSE, warning= FALSE}
+data_address <- "Data - After Consistency/Censo.1960.brasil.pessoas.amostra.1.27porcento.csv"
+
+fwrite(x = censo1960_pess_final,
+       file = data_address,
+       na = "",
+       row.names = F,
+       quote = TRUE)
+
+zip::zip(zipfile = 'Data - After Consistency/Censo.1960.brasil.pessoas.amostra.1.27porcento.zip', 
+    files   = data_address)
+
+file.remove(data_address)
+```
+
+A lista de variáveis contidas no arquivo de dados, ao fim, é:
 
 ```{r}
-write.csv(x = censo1960_pess_final,   
-          file = paste0(output_dir, "/Censo.1960.brasil.pessoas.amostra.1.27porcento.csv"),
-          na="",
-          row.names = F, 
-          fileEncoding = "utf-8",
-          quote = TRUE)
-
 names(censo1960_pess_final)
 ```
-
-
-
-## ULTIMOS TESTES DE CONSISTENCIA
-
-Domicilios
-
-Nenhum domicilio tem mais dormit?rios do que comodos
-
-```{r}
-sum(censo1960_hh_final$v112 < censo1960_hh_final$v113, na.rm=T) #ok
-```
-
-
-```{r}
-table(censo1960_hh_final$v101, censo1960_hh_final$v102) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v103) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v104) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v105) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v106) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v107) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v108) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v109) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v110) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v111) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v112) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v113) #ok
-table(censo1960_hh_final$v101, censo1960_hh_final$v118) #ok
-```
-
-
-
-```{r}
-table(censo1960_hh_final$v102, censo1960_hh_final$v103) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v104) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v105) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v106) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v107) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v108) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v109) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v110) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v111) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v112) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v113) #ok
-table(censo1960_hh_final$v102, censo1960_hh_final$v118) #ok
-```
-
-
-
-# Pessoas
-
-
-
-table(censo1960_pess_final$v204b, censo1960_pess_final$v204) #ok
-
-table(censo1960_pess_final$v207, censo1960_pess_final$v208) #problema em dois casos
-
-censo1960_pess_semifinal %>%
-        filter(v207 == 76 & v208 == 9) %>%
-        View()
-
-table(censo1960_pess_final$v209, censo1960_pess_final$v299) #ajustes necess?rios
-
-censo1960_pess_final <- censo1960_pess_final %>%
-        mutate(v299 = ifelse(v209 == 2, NA, v299)) # O valor zero na v299 significa, na realidade, um n?o se aplica 
-
-table(censo1960_pess_final$v210, censo1960_pess_final$v209) #ok
-
-
-with(censo1960_pess_final %>% filter(v204 == 0), {
-        print(table(v204b, v211)) #ok        
-        print(table(v204b, v212)) #ok        
-        print(table(v204b, v213)) #ok    
-        print(table(v204b, v214)) #ok    
-        print(table(v204b, v215)) #ok    
-        print(table(v204b, v216)) #ok    
-        print(table(v204b, v217)) #ok
-        print(table(v204b, v218)) #ok    
-        print(table(v204b, v219)) #ok
-        print(table(v204b, v220)) #ok
-        print(table(v204b, v221)) #ok
-        print(table(v204b, v223)) #ok   
-        print(table(v204b, v223b)) #ok    
-})
-
-
-with(censo1960_pess_final %>% filter(v204 == 1), {
-        print("v211")
-        print(table(v204b, v211)) #ok        
-        print("------------------------------------------------")
-        
-        print("v212")
-        print(table(v204b, v212)) #ok        
-        print("------------------------------------------------")
-        
-        print("v213")
-        print(table(v204b, v213)) #ok    
-        print("------------------------------------------------")
-        
-        print("v214")
-        print(table(v204b, v214)) #ok    
-        print("------------------------------------------------")
-        
-})
-
-tabela_idade_casamento <- with(censo1960_pess_final %>% filter(v204 > 0),{
-        table(v204b, v216)})
-#write.csv2(tabela_idade_casamento, "c:/users/rogerio/desktop/tabela_idade_casamento.csv")
-
-with(censo1960_pess_final %>% filter(v204 == 1), {
-        print("v215")
-        print(table(v204b, v215)) #ok    
-        print("------------------------------------------------")
-        
-        print("v216")
-        print(table(v204b, v216)) #ok    
-        print("------------------------------------------------")
-        
-        print("v217")
-        print(table(v204b, v217)) #ok
-        print("------------------------------------------------")
-        
-        print("v219")
-        print(table(v204b, v219)) #ok
-        print("------------------------------------------------")
-        
-        print("v220")
-        print(table(v204b, v220)) #ok
-        print("------------------------------------------------")
-})
-
-with(censo1960_pess_final %>% filter(v204 == 1), {
-        print("v221")
-        print(table(v204b, v221)) #ok
-        print("------------------------------------------------")
-        
-        print("v223")
-        print(table(v204b, v223)) #ok   
-        print("------------------------------------------------")
-        
-        print("v223b")
-        print(table(v204b, v223b)) #ok    
-})
-
-
-
 
 
