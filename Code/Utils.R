@@ -106,3 +106,14 @@ aplicaTesta_layout <- function(dados_string,
         }
         as_tibble(censo1960_data)
 }
+
+
+
+max_sem_na = function(x) {
+        max(x, na.rm = T)
+}
+
+
+replace_infinite = function(x) {
+        ifelse(!is.finite(x), NA, x)
+}
