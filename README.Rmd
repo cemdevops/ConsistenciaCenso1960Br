@@ -2,7 +2,9 @@
 title: "Consistência da Amostra de 1,27%  do Censo de 1960"
 author: "Rogério Jerônimo Barbosa"
 date: "19 de agosto de 2018"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -416,7 +418,6 @@ num_linha_dom_prob <- censo1960_hh %>%
         .$num_linha_dom
 
 for(i in num_linha_dom_prob){
-        print(i)
         vars_prob <- censo1960_hh[censo1960_hh$num_linha_dom == i, "cem_problematic_vars_list_dom"] %>% 
                 unlist() %>%
                 strsplit(split = " ") %>%
@@ -424,7 +425,6 @@ for(i in num_linha_dom_prob){
                 str_trim()
         var = vars_prob[2]
         for(var in vars_prob){
-                print(paste("---", var))
                 censo1960_hh[censo1960_hh$num_linha_dom == i,][[var]] <- NA        
         }
 }
@@ -447,7 +447,185 @@ censo1960_hh_preliminar <- cbind(censo1960_hh_numeric, censo1960_hh_character) %
 ```
 
 
+### Registros de pessoas
+
+A consistência dos registros de pessoas seguirá a mesma ordem e estrutura daquela aplicada para os registros de famílias. Primeiramente, carregamos o arquivo de layout, criado a partir das sintaxes:
+
+```{r}
+input_person  <- read_xlsx(input_file, sheet = "Person_open")
+```
+
+No arquivo de dados original, ainda em formato de texto com caracteres de posições fixas, selecionamos apenas os dados de pessoas (valores diferentes de 1 na coluna 17):
+
+```{r}
+c60_string_pess <-   c60_string[which(teste_char17_dom_pess != 1)]
+num_linha_pess  <- (1:n_linhas)[which(teste_char17_dom_pess != 1)]
+```
+
+Aplicamos então o arquivo de layout para separar as colunas e executamos testes para averiguar se os valores encontrados no arquivo de dados estão contemplados no dicionário de códigos:
+
+```{r}
+censo1960_pess <- aplicaTesta_layout(dados_string = c60_string_pess,
+                                   input        = input_person) %>%
+        mutate(num_linha_pess = num_linha_pess) %>% 
+        select(num_linha_pess, everything())
+```
+
+Identificamos então as linhas que contêm ao menos um erro:
+
+```{r}
+censo1960_pess$contains_invalid <- censo1960_pess %>% 
+        select(starts_with("test_")) %>%                          
+        mutate_all(function(x) as.numeric(!(x))) %>%
+        mutate_all(function(x) ifelse(is.na(x), 0, x)) %>% 
+        rowSums(.) 
+```
+
+Gravamos então, num objeto à parte, os identificadores únicos (números das linhas) dos registros problematicos:
+
+```{r}
+# Problema 1: presenca de caracteres nao listados como validos pelo dicionario de codigo
+pess_linhas_problemas_1 <- censo1960_pess %>% 
+        filter(contains_invalid > 0) %>%
+        .$num_linha_pess
+```
+
+Passamos à identificação do segundo tipo de problema: a presença de caracteres inválidos:
+
+```{r}
+# Problema 2: presenca de outros tipos de caracteres invalidos
+pess_linhas_problemas_2 = grep(pattern = "[[:alpha:]]|[[:cntrl:]]|[[:punct:]]" , 
+                               x       = gsub(pattern     = "[\\]", 
+                                              replacement = "", 
+                                              x           = c60_string_pess))
+pess_linhas_problemas_2 = censo1960_pess[pess_linhas_problemas_2,"num_linha_pess"] %>% unlist()
+```
+
+Por fim, buscamos pela presença de caracteres adicionais, separando variáveis e valores que deveriam ser adjacentes nos dados:
+
+```{r}
+# Problema 3: presenca de espacos (até 3) entre caracteres
+pess_linhas_problemas_3 = grep(pattern = "[[:digit:]][[:blank:]]{1,3}[[:digit:]]",
+                             x       = c60_string_pess)
+pess_linhas_problemas_3 = censo1960_pess[pess_linhas_problemas_3,"num_linha_pess"] %>% unlist()
+
+```
+
+Compilamos num objeto as linhas detectadas como problemáticas segundo as três definições acima e salvamos num arquivo separado os dados e diagnósticos sobre os registros de pessoas, que serão avaliados manualmente: 
+
+```{r}
+pess_linhas_problemas = c(pess_linhas_problemas_1, pess_linhas_problemas_2, pess_linhas_problemas_3) %>%
+        unique() %>%
+        sort()
+
+write.csv2(x = censo1960_pess %>% 
+                   mutate(string = c60_string_pess) %>%
+                   filter(num_linha_pess %in% pess_linhas_problemas) %>%
+                   select(num_linha_pess, string, starts_with("test_"), contains_invalid),
+           file = "linhas_problematicas_pessoas.csv",
+           row.names = F)
+```
+
+
+#### Corrigindo os registros de pessoas
+
+Uma vez realizado o diagnóstico manual, carregamos os seus resultados
+
+```{r}
+checks_pess <- read_xlsx("check_line_by_line.xlsx", sheet = "persons")
+```
+
+```{r}
+source("https://raw.githubusercontent.com/antrologos/ConsistenciaCenso1960Br/master/Code/Persons_diagnostics_procedure.R")
+```
+
+```{r}
+censo1960_pess <- aplicaTesta_layout(dados_string = c60_string_pess,
+                                     input        = input_person) %>%
+        mutate(num_linha_pess = num_linha_pess,
+               cem_diagnosis_pess = diagnosis) %>% 
+        select(num_linha_pess, everything())
+```
+
+
+Identifica linhas que contem ao menos um erro
+
+```{r}
+censo1960_pess$cem_vars_still_problematic_pess <- censo1960_pess %>% 
+        select(starts_with("test_")) %>%  
+        mutate_all(function(x) as.numeric(!(x))) %>%
+        mutate_all(function(x) ifelse(is.na(x), 0, x)) %>% 
+        rowSums(.) 
+```
+
+Identificando as variaveis problematicas nos casos problematicos
+
+```{r}
+casos_problematicos <- censo1960_pess %>%
+        filter(cem_vars_still_problematic_pess > 0) 
+
+teste_problematicos <- casos_problematicos %>%
+        select(starts_with("test_"), -test_ID, -test_barra)
+
+casos_problematicos$cem_problematic_vars_list_pess = ""
+vars <- names(teste_problematicos)
+for(var in vars){
+        problematic_cases <- which(!teste_problematicos[[var]])
         
+        var_name = gsub(pattern = "test_", replacement = "" , x = var)
+        
+        casos_problematicos[problematic_cases, "cem_problematic_vars_list_pess"] = 
+                paste(casos_problematicos[problematic_cases, ]$cem_problematic_vars_list_pess, var_name)
+}
+
+casos_problematicos$cem_problematic_vars_list_pess <- str_trim(casos_problematicos$cem_problematic_vars_list_pess)
+
+censo1960_pess <- left_join(x = censo1960_pess,
+                          y = casos_problematicos %>%
+                                  select(num_linha_pess, cem_problematic_vars_list_pess),
+                          by = "num_linha_pess")
+```
+
+
+Substituindo valores invalidos por missing
+
+```{r}
+num_linha_pess_prob <- censo1960_pess %>%
+        filter(cem_vars_still_problematic_pess >= 1) %>%
+        .$num_linha_pess
+
+for(i in num_linha_pess_prob){
+        vars_prob <- censo1960_pess[censo1960_pess$num_linha_pess == i, "cem_problematic_vars_list_pess"] %>% 
+                unlist() %>%
+                strsplit(split = " ") %>%
+                unlist()
+        
+        for(var in vars_prob){
+                censo1960_pess[censo1960_pess$num_linha_pess == i,][[var]] <- NA        
+        }        
+}
+```
+
+Compilando o banco de pessoas (quase) final 
+
+```{r}
+censo1960_pess_numeric <- censo1960_pess%>%
+        select(-starts_with("test_"), - barra) %>% 
+        select(-cem_diagnosis_pess, -cem_problematic_vars_list_pess,
+               -starts_with("place_")) %>%
+        mutate_all(as.numeric)
+
+
+censo1960_pess_character <- censo1960_pess %>%
+        select(cem_diagnosis_pess, cem_problematic_vars_list_pess,
+               starts_with("place_"))
+
+censo1960_pess_semifinal <- cbind(censo1960_pess_numeric, censo1960_pess_character) %>% as_tibble()
+```
+
+
+
+
 
 
 
