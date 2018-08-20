@@ -55,7 +55,7 @@ aplicaTesta_layout <- function(dados_string,
         
         for(i in 1:nrow(input)){
                 
-                print(input$Var[i])
+                #print(input$Var[i])
                 
                 # Separando colunas segundo o arquivo de input
                 censo1960_data[[input$Var[i]]] <- substr(dados_string, 
