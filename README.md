@@ -1,9 +1,4 @@
-Consistência dos microdados da Amostra de 1,27% do Censo Demográfico de 1960
-============================================================================
-
-Sumário
--------
-
+-   [Consistência dos microdados da Amostra de 1,27% do Censo Demográfico de 1960](#consistencia-dos-microdados-da-amostra-de-127-do-censo-demografico-de-1960)
     -   [Introdução e objetivos](#introducao-e-objetivos)
     -   [As amostras do Censo de 1960: contexto e antecedentes](#as-amostras-do-censo-de-1960-contexto-e-antecedentes)
     -   [Amostra de 1,27%: origem dos dados e a necessidade de consistência](#amostra-de-127-origem-dos-dados-e-a-necessidade-de-consistencia)
@@ -24,6 +19,8 @@ Sumário
     -   [Dicionário de códigos](#dicionario-de-codigos)
     -   [Documentação auxiliar reunida](#documentacao-auxiliar-reunida)
 
+Consistência dos microdados da Amostra de 1,27% do Censo Demográfico de 1960
+============================================================================
 
 Introdução e objetivos
 ----------------------
