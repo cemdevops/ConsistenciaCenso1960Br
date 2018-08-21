@@ -1,10 +1,42 @@
-Microdados da Amostra de 1,27% do Censo Demográfico de 1960
-===========================================================
+Consistência dos microdados da Amostra de 1,27% do Censo Demográfico de 1960
+============================================================================
+
+Sumário
+-------
+
+    -   [Introdução e objetivos](#introducao-e-objetivos)
+    -   [As amostras do Censo de 1960: contexto e antecedentes](#as-amostras-do-censo-de-1960-contexto-e-antecedentes)
+    -   [Amostra de 1,27%: origem dos dados e a necessidade de consistência](#amostra-de-127-origem-dos-dados-e-a-necessidade-de-consistencia)
+        -   [Consistência, transparência e replicabilidade: RMarkdown e Github](#consistencia-transparencia-e-replicabilidade-rmarkdown-e-github)
+    -   [Arquivos originais e formato dos dados](#arquivos-originais-e-formato-dos-dados)
+    -   [Abertura dos dados e identificação de registros de famílias e pessoas](#abertura-dos-dados-e-identificacao-de-registros-de-familias-e-pessoas)
+        -   [Registros de famílias](#registros-de-familias)
+        -   [Registros de pessoas](#registros-de-pessoas)
+    -   [Identificando domicílios](#identificando-domicilios)
+    -   [Importando IDs de domicílio para o banco de pessoas](#importando-ids-de-domicilio-para-o-banco-de-pessoas)
+    -   [Construindo um banco de domicílios](#construindo-um-banco-de-domicilios)
+    -   [Imputação de valores faltantes](#imputacao-de-valores-faltantes)
+        -   [Identificando casos de missing na variavel de UF](#identificando-casos-de-missing-na-variavel-de-uf)
+        -   [Identificando casos de missing na variavel v116 \*\*](#identificando-casos-de-missing-na-variavel-v116)
+    -   [Inconsistências entre pessoas e domicílios](#inconsistencias-entre-pessoas-e-domicilios)
+    -   [Re-criando o banco de domicílios (após as imputações) a partir dos dados de pessoas](#re-criando-o-banco-de-domicilios-apos-as-imputacoes-a-partir-dos-dados-de-pessoas)
+    -   [O banco de pessoas](#o-banco-de-pessoas)
+    -   [Dicionário de códigos](#dicionario-de-codigos)
+    -   [Documentação auxiliar reunida](#documentacao-auxiliar-reunida)
+
 
 Introdução e objetivos
 ----------------------
 
 O objetivo principal deste documento é apresentar detalhadamente os procedimentos e rotinas de consistência do banco de dados da amostra de 1,27% do Censo Demográfico de 1960. As versões que circularm entre pesquisadores e analistas frequentemente contém graves problemas em seus registros (ainda que restritos a um número não muito grande de casos). O produto final da análise apresentada aqui serão versões consistidas dos bancos de pessoas e domicílios, prontos para a utilização, com um dicionário de códigos especialmente elaborado para tais versões, documentação auxiliar reunida e todos os scripts utilizados. Pretendemos, deste modo, facilitar o uso e a compreensão dos dados, contribuindo para a elaboração de futuros estudos que visem estudar aquele período.
+
+Os dados, em suas versões finais e consistidas encontram-se disponíveis em formato CSV [nesta pasta do GitHub](https://github.com/antrologos/ConsistenciaCenso1960Br/tree/master/Data%20-%20After%20Consistency). Nela, encontram-se:
+
+1.  O arquivo de [microdados de pessoas](https://github.com/antrologos/ConsistenciaCenso1960Br/blob/master/Data%20-%20After%20Consistency/Censo.1960.brasil.pessoas.amostra.1.27porcento.zip)
+2.  O arquivo de [microdados de domicílios](https://github.com/antrologos/ConsistenciaCenso1960Br/blob/master/Data%20-%20After%20Consistency/Censo.1960.brasil.domicilios.amostra.1.27porcento.zip)
+3.  Um [dicionário de códigos](https://github.com/antrologos/ConsistenciaCenso1960Br/blob/master/Data%20-%20After%20Consistency/Censo%201960%20-%20Dicion%C3%A1rio%20de%20C%C3%B3digos%20-%20Domic%C3%ADlios%2C%20Pessoas%20e%20Vari%C3%A1veis%20Auxiliares.xlsx) em formato XLSX, elaborado após os procedimentos de consistência.
+
+As próximas seções apresentarão todos os passos necessários para a construção, crítica e compreensão desses dados.
 
 As amostras do Censo de 1960: contexto e antecedentes
 -----------------------------------------------------
