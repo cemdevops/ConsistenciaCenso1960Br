@@ -3,9 +3,9 @@ title: "Consistência da Amostra de 1,27%  do Censo de 1960"
 author: "Rogério Jerônimo Barbosa"
 date: "20 de agosto de 2018"
 output:
-  word_document: default
   md_document:
     variant: markdown_github
+  word_document: default
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -14,6 +14,23 @@ knitr::opts_chunk$set(echo = TRUE)
 options(scipen = 999)
 setwd("/Users/Rogerio/Google Drive/RCodes/Others/ConsistenciaCenso1960Br")
 ```
+
+# Microdados da Amostra de 1,27% do Censo Demográfico de 1960
+
+## Introdução e objetivos
+
+O objetivo principal deste documento é apresentar detalhadamente os procedimentos e rotinas de consistência do banco de dados da amostra de 1,27% do Censo Demográfico de 1960. As versões que circularm entre pesquisadores e analistas frequentemente contém graves problemas em seus registros (ainda que restritos a um número não muito grande de casos). O produto final da análise apresentada aqui serão versões consistidas dos bancos de pessoas e domicílios, prontos para a utilização, com um dicionário de códigos especialmente elaborado para tais versões, documentação auxiliar reunida e todos os scripts utilizados. Pretendemos, deste modo, facilitar o uso e a compreensão dos dados, contribuindo para a elaboração de futuros estudos que visem estudar aquele período.
+
+## As amostras do Censo de 1960: contexto e antecedentes
+
+O IBGE não distribui oficialmente os microdados da amostra do Censo Demográfico de 1960, justamente a primeira edição que contou com processamento automatizado e digitalização das respostas. Todas as demais edições produzidas a a partir de então podem ser adquiridas por meio das lojas físicas ou da loja virtual do IBGE. A razão para isso está contida na complicada história desses dados. 
+
+O processamento e análise desses dados sofreram atrasos e não haviam sido levados a cabo até o ano de 1965. O IBGE decidiu então sortear uma sub-amostra probabilística (baseada no sorteio aleatório de lotes de questionários), contendo todas as unidades da federação, de aproximadamente 1,27% da população a partir da amostra completa, de 25%. Esses microdados reduzidos geraram o relatório publicado no Volume 2 dos Resultados Preliminares do Censo de 1960 e, posteriormente, foram utilizados em diversos estudos de referência sobre desigualdades sociais. Essa amostra reduzida contém aproximadamente 900 mil casos de indivíduos, o que garante elevado grau de confiabilidade e erros-padrão diminutos. No entanto, ainda assim, sua magnitude reduzida é impeditiva para análises de níveis geográficos mais desagregados do que as Unidades da Federação. Atualmente, tal banco de dados é disponibilizado para uso público pelo Centro de Estudos da Metrópole (http://www.centrodametropole.org.br). 
+
+Os dados da amostra de 25% do Censo de 1960 nunca foram processados por completo – diversos estados não tiveram seus questionários digitalizados. Atualmente o IBGE dispõe dos dados de apenas 14 estados da Federação - estão ausentes as informações para os estados da antiga Região Norte , de Santa Catarina e do Espírito Santo. Esse banco, no entanto, tem circulação restrita e não é comercializado pela instituição. O Integrated Public Use Microdata Series, International (IPUMS-International), consórcio encabeçado pela Universidade de Minnesota, no entanto, disponibiliza uma sub-amostra desses dados, com fração de 5% da população e contendo apelas aquelas 14 unidades da federação processadas originalmente. 
+
+Existem então duas versões de bancos de dados para o Censo de 1960 que circulam entre os pesquisadores: um correspondendo à amostra a de 1,27% contendo todas as UFs e outro referente à amostra de 5%, extraída pelo IPUMS a partir da amostra parcialmente processada de 25%, cobrindo apenas uma parte do país. Como parte do projeto, pretende-se gerar uma compilação dessas duas bases de dados, gerando uma versão mais completa dos microdados do Censo de 1960. 
+
 
 ## Amostra de 1,27%: origem dos dados e a necessidade de consistência
 
@@ -1200,4 +1217,13 @@ A lista de variáveis contidas no arquivo de dados, ao fim, é:
 names(censo1960_pess_final)
 ```
 
+
+## Dicionário de códigos
+
+Um dicionário de códigos completo foi elaborado para a amostra consistida de pessoas e domicílios, após a aplicação de todos os procedimentos de consistência descritos acima. Ele se encontra em formato XLSX, e está disponível [neste link](https://github.com/antrologos/ConsistenciaCenso1960Br/blob/master/Data%20-%20After%20Consistency/Censo%201960%20-%20Dicion%C3%A1rio%20de%20C%C3%B3digos%20-%20Domic%C3%ADlios%2C%20Pessoas%20e%20Vari%C3%A1veis%20Auxiliares.xlsx).
+
+
+## Documentação auxiliar reunida
+
+Qualquer dicionário de códigos, no entanto, é  insuficiente para fornecer uma compreensão sólida sobre os conceitos e esquemas de codificação. Frequentemente, os documentos mais completo e úteis para o adequado entendimento do banco de dados são os questionários e manuais dos entrevistadores. Com o intuito de facilitar o acesso desses documentos aos pesquisadores, reunimos esses e outros documentos importantes numa só pasta, no Github, que pode ser acessada por meio [deste link](https://github.com/antrologos/ConsistenciaCenso1960Br/tree/master/IBGE%20-%20Original%20Documentation).
 
