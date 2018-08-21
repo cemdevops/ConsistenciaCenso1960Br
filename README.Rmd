@@ -3,9 +3,9 @@ title: "Consistência da Amostra de 1,27%  do Censo de 1960"
 author: "Rogério Jerônimo Barbosa"
 date: "20 de agosto de 2018"
 output:
+  word_document: default
   md_document:
     variant: markdown_github
-  word_document: default
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
